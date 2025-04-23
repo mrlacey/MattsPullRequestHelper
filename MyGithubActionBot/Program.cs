@@ -51,43 +51,51 @@ public class Program
             }
 
             var eventData = File.ReadAllText(prFilesJson);
-            Console.WriteLine($"Event Data: {eventData}"); // Log the entire event payload for debugging
-
             dynamic prEvent = Newtonsoft.Json.JsonConvert.DeserializeObject(eventData);
 
-            if (prEvent.pull_request != null && prEvent.pull_request.files_url != null)
+            if (prEvent.pull_request != null)
             {
-                string filesUrl = prEvent.pull_request.files_url;
-                Console.WriteLine($"Pull request files URL: {filesUrl}");
+                string repository = Environment.GetEnvironmentVariable("GITHUB_REPOSITORY");
+                string pullRequestNumber = prEvent.pull_request.number;
 
-                using (var client = new HttpClient())
+                if (!string.IsNullOrEmpty(repository) && pullRequestNumber != null)
                 {
-                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {Environment.GetEnvironmentVariable("GITHUB_TOKEN")}");
-                    client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
+                    string filesUrl = $"https://api.github.com/repos/{repository}/pulls/{pullRequestNumber}/files";
+                    Console.WriteLine($"Pull request files URL: {filesUrl}");
 
-                    var response = client.GetAsync(filesUrl).Result;
-                    if (response.IsSuccessStatusCode)
+                    using (var client = new HttpClient())
                     {
-                        var files = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(response.Content.ReadAsStringAsync().Result);
-                        foreach (var file in files)
+                        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {Environment.GetEnvironmentVariable("GITHUB_TOKEN")}");
+                        client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
+
+                        var response = client.GetAsync(filesUrl).Result;
+                        if (response.IsSuccessStatusCode)
                         {
-                            string fileName = file.filename;
-                            Console.WriteLine($"Changed file: {fileName}");
-                            if (fileName.EndsWith(".cs"))
+                            var files = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(response.Content.ReadAsStringAsync().Result);
+                            foreach (var file in files)
                             {
-                                changedFiles.Add(fileName);
+                                string fileName = file.filename;
+                                Console.WriteLine($"Changed file: {fileName}");
+                                if (fileName.EndsWith(".cs"))
+                                {
+                                    changedFiles.Add(fileName);
+                                }
                             }
                         }
+                        else
+                        {
+                            Console.WriteLine($"Failed to fetch pull request files. Status: {response.StatusCode}, Message: {response.Content.ReadAsStringAsync().Result}");
+                        }
                     }
-                    else
-                    {
-                        Console.WriteLine($"Failed to fetch pull request files. Status: {response.StatusCode}, Message: {response.Content.ReadAsStringAsync().Result}");
-                    }
+                }
+                else
+                {
+                    Console.WriteLine("Repository or pull request number is missing.");
                 }
             }
             else
             {
-                Console.WriteLine("Pull request or files_url not found in the event data.");
+                Console.WriteLine("Pull request data not found in the event payload.");
             }
         }
         catch (Exception ex)
@@ -268,11 +276,6 @@ Console.WriteLine(line);
     }
 
     public static void PlaceholderMethodQ()
-    {
-        // Placeholder for testing deleting public methods
-    }
-
-    public static void PlaceholderMethodR()
     {
         // Placeholder for testing deleting public methods
     }
