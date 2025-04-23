@@ -1,0 +1,35 @@
+name: MattsPullRequestHelper
+description: A GitHub Action to analyze changed files and test methods in pull requests.
+author: Matt Lacey
+inputs:
+  github-token:
+    description: The GitHub token to authenticate API requests.
+    required: true
+  workspace:
+    description: The GitHub workspace directory.
+    required: false
+    default: ${{ github.workspace }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.0'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build the project
+      run: dotnet build --configuration Release
+
+    - name: Run the bot
+      run: dotnet run --project MyGithubActionBot/MyGithubActionBot.csproj
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_WORKSPACE: ${{ inputs.workspace }}
+
+branding:
+  icon: code
+  color: blue
