@@ -272,9 +272,4 @@ Console.WriteLine($"Analyzing file: {file}");
     {
         // Placeholder for testing deleting public methods
     }
-
-    public static void PlaceholderMethodP()
-    {
-        // Placeholder for testing deleting public methods
-    }
 }
