@@ -127,12 +127,18 @@ public class Program
 
         var apiUrl = $"https://api.github.com/repos/{repository}/issues/{pullRequestNumber}/comments";
 
+        // Temporary debugging output
+        Console.WriteLine($"Posting to: {apiUrl}");
+
         using (var client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {githubToken}");
+            client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
             client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
 
             var content = new StringContent($"{{\"body\": \"{message}\"}}", Encoding.UTF8, "application/json");
+
+            Console.WriteLine($"Posting content: '{content}'");
 
             var response = await client.PostAsync(apiUrl, content);
             if (response.IsSuccessStatusCode)
@@ -167,11 +173,6 @@ public class Program
     }
 
     public static void PlaceholderMethod5()
-    {
-        // Placeholder for testing deleting public methods
-    }
-
-    public static void PlaceholderMethod6()
     {
         // Placeholder for testing deleting public methods
     }
