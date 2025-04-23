@@ -94,7 +94,7 @@ public class Program
             var lines = File.ReadAllLines(file);
             foreach (var line in lines)
             {
-                if (line.Contains("public") && line.Starts("-"))
+                if (line.Contains("public") && line.StartsWith("-"))
                 {
                     var match = Regex.Match(line, @"-\s*public\s+\w+\s+(\w+)\s*\(");
                     if (match.Success)
