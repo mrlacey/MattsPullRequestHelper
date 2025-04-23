@@ -94,9 +94,9 @@ public class Program
             var lines = File.ReadAllLines(file);
             foreach (var line in lines)
             {
-                if (line.Contains("public") && line.Contains("-"))
+                if (line.Contains("public") && line.Starts("-"))
                 {
-                    var match = Regex.Match(line, @"\s*public\s+\w+\s+(\w+)\s*\(");
+                    var match = Regex.Match(line, @"-\s*public\s+\w+\s+(\w+)\s*\(");
                     if (match.Success)
                     {
                         deletedMethods.Add(match.Groups[1].Value);
@@ -279,11 +279,6 @@ public class Program
     }
 
     public static void PlaceholderMethodY()
-    {
-        // Placeholder for testing deleting public methods
-    }
-
-    public static void PlaceholderMethodZ()
     {
         // Placeholder for testing deleting public methods
     }
