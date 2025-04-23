@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using LibGit2Sharp;
+using Newtonsoft.Json;
 
 public class Program
 {
@@ -34,10 +35,10 @@ public class Program
         await PostToPullRequest(fullMessage);
     }
 
-    public static List<string> GetChangedFiles()
+    public static List<dynamic> GetChangedFiles()
     {
         string workspace = Environment.GetEnvironmentVariable("GITHUB_WORKSPACE") ?? "";
-        var changedFiles = new List<string>();
+        var changedFiles = new List<dynamic>();
 
         Console.WriteLine($"Workspace directory: {workspace}");
 
@@ -51,7 +52,7 @@ public class Program
             }
 
             var eventData = File.ReadAllText(prFilesJson);
-            dynamic prEvent = Newtonsoft.Json.JsonConvert.DeserializeObject(eventData);
+            dynamic prEvent = JsonConvert.DeserializeObject(eventData);
 
             if (prEvent.pull_request != null)
             {
@@ -71,7 +72,7 @@ public class Program
                         var response = client.GetAsync(filesUrl).Result;
                         if (response.IsSuccessStatusCode)
                         {
-                            var files = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(response.Content.ReadAsStringAsync().Result);
+                            var files = JsonConvert.DeserializeObject<List<dynamic>>(response.Content.ReadAsStringAsync().Result);
                             foreach (var file in files)
                             {
                                 string fileName = file.filename;
@@ -81,7 +82,7 @@ public class Program
 
                                 if (fileName.EndsWith(".cs"))
                                 {
-                                    changedFiles.Add(fileName);
+                                    changedFiles.Add(file);
                                 }
                             }
                         }
@@ -109,41 +110,46 @@ public class Program
         return changedFiles;
     }
 
-    public static (int Added, int Deleted, int Changed) AnalyzeTestMethods(List<string> changedFiles)
+    public static (int Added, int Deleted, int Changed) AnalyzeTestMethods(List<dynamic> changedFiles)
     {
         int added = 0, deleted = 0, changed = 0;
 
-        foreach (var file in changedFiles.Where(f => f.EndsWith(".cs")))
+        foreach (var file in changedFiles)
         {
-            Console.WriteLine($"Analyzing file: {file}");
-            var lines = File.ReadAllLines(file);
-            foreach (var line in lines)
+            Console.WriteLine($"Analyzing file: {file.filename}");
+            //var lines = File.ReadAllLines(file);
+            foreach (var line in file.patch.Split('\n'))
             {
-                Console.WriteLine($"Line: {line}");
-                if (line.Contains("[TestMethod]"))
+                if (line.StartsWith("+") && line.Contains("[TestMethod]"))
                 {
                     added++;
                 }
+                else if (line.StartsWith("-") && line.Contains("[TestMethod]"))
+                {
+                    deleted++;
+                }
+                // else if (line.StartsWith(" ") && line.Contains("[TestMethod]"))
+                // {
+                //     changed++;
+                // }
             }
         }
 
         return (added, deleted, changed);
     }
 
-    public static List<string> AnalyzeDeletedPublicMethods(List<string> changedFiles)
+    public static List<string> AnalyzeDeletedPublicMethods(List<dynamic> changedFiles)
     {
         var deletedMethods = new List<string>();
 
-        foreach (var file in changedFiles.Where(f => f.EndsWith(".cs")))
+        foreach (var file in changedFiles)
         {
-            var lines = File.ReadAllLines(file);
-Console.WriteLine($"Analyzing file: {file}");
+            //var lines = File.ReadAllLines(file);
 
-            foreach (var line in lines)
+            foreach (var line in file.patch.Split('\n'))
             {
-//Console.WriteLine(line);
-
-                if (line.Contains("public") && line.StartsWith("-"))
+                // Check for deleted public methods in the diff
+                if (line.StartsWith("-") && line.Contains("public") && line.Contains("("))
                 {
                     var match = Regex.Match(line, @"-\s*public\s+\w+\s+(\w+)\s*\(");
                     if (match.Success)
