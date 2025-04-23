@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using LibGit2Sharp;
 
-class Program
+public class Program
 {
-    static void Main(string[] args)
+    public static void Main(string[] args)
     {
         // Simulate receiving a list of changed files in a PR
         var changedFiles = GetChangedFiles();
@@ -27,7 +27,7 @@ class Program
         }
     }
 
-    static List<string> GetChangedFiles()
+    public static List<string> GetChangedFiles()
     {
         string workspace = Environment.GetEnvironmentVariable("GITHUB_WORKSPACE") ?? "";
         var changedFiles = new List<string>();
@@ -60,25 +60,28 @@ class Program
         return changedFiles;
     }
 
-    static (int Added, int Deleted, int Changed) AnalyzeTestMethods(List<string> changedFiles)
+    public static (int Added, int Deleted, int Changed) AnalyzeTestMethods(List<string> changedFiles)
     {
         int added = 0, deleted = 0, changed = 0;
 
         foreach (var file in changedFiles.Where(f => f.EndsWith(".cs")))
         {
+            Console.WriteLine($"Analyzing file: {file}");
             var lines = File.ReadAllLines(file);
             foreach (var line in lines)
             {
-                if (line.Contains("[TestMethod]") && line.Contains("+")) added++;
-                else if (line.Contains("[TestMethod]") && line.Contains("-")) deleted++;
-                else if (line.Contains("[TestMethod]") && line.Contains("~")) changed++;
+                Console.WriteLine($"Line: {line}");
+                if (line.Contains("[TestMethod]"))
+                {
+                    added++;
+                }
             }
         }
 
         return (added, deleted, changed);
     }
 
-    static List<string> AnalyzeDeletedPublicMethods(List<string> changedFiles)
+    public static List<string> AnalyzeDeletedPublicMethods(List<string> changedFiles)
     {
         var deletedMethods = new List<string>();
 
