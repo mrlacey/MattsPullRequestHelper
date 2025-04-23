@@ -94,7 +94,7 @@ public class Program
             var lines = File.ReadAllLines(file);
             foreach (var line in lines)
             {
-                if (line.Contains("public") && line.Starts("-"))
+                if (line.Contains("public") && line.StartsWith("-"))
                 {
                     var match = Regex.Match(line, @"-\s*public\s+\w+\s+(\w+)\s*\(");
                     if (match.Success)
@@ -134,12 +134,8 @@ public class Program
             client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
 
             var contentBody = $"{{\"body\": \"{message.Replace("\n", "<br />")}\"}}";
-            //var contentBody = $"{{\"body\":\"a test<br/>html<br/>message\"}}";
 
             var content = new StringContent(contentBody, Encoding.UTF8, "application/json");
-
-            // Temporary debugging output
-            Console.WriteLine($"Posting content: '{contentBody}'");
 
             var response = await client.PostAsync(apiUrl, content);
             if (response.IsSuccessStatusCode)
@@ -274,11 +270,6 @@ public class Program
     }
 
     public static void PlaceholderMethodX()
-    {
-        // Placeholder for testing deleting public methods
-    }
-
-    public static void PlaceholderMethodY()
     {
         // Placeholder for testing deleting public methods
     }
