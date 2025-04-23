@@ -1,0 +1,19 @@
+name: Self-Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  example-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use MattsPullRequestHelper
+        uses: mrlacey/MattsPullRequestHelper@main # or specify a tag or specific commit SHA
