@@ -16,16 +16,16 @@ public class Program
 
         // Analyze test methods
         var testAnalysis = AnalyzeTestMethods(changedFiles);
-        var testAnalysisMessage = $"Added Tests: {testAnalysis.Added}\nDeleted Tests: {testAnalysis.Deleted}\nChanged Tests: {testAnalysis.Changed}";
+        var testAnalysisMessage = $"Added Tests: {testAnalysis.Added}\r\nDeleted Tests: {testAnalysis.Deleted}\r\nChanged Tests: {testAnalysis.Changed}";
         Console.WriteLine(testAnalysisMessage);
 
         // Analyze deleted public methods
         var deletedPublicMethods = AnalyzeDeletedPublicMethods(changedFiles);
-        var deletedMethodsMessage = "Deleted Public Methods:\n" + string.Join("\n", deletedPublicMethods);
+        var deletedMethodsMessage = "Deleted Public Methods:\r\n" + string.Join("\r\n", deletedPublicMethods);
         Console.WriteLine(deletedMethodsMessage);
 
         // Combine messages
-        var fullMessage = $"{testAnalysisMessage}\n\n{deletedMethodsMessage}";
+        var fullMessage = $"{testAnalysisMessage}\r\n\r\n{deletedMethodsMessage}";
 
         // Post to PR conversation
         await PostToPullRequest(fullMessage);
