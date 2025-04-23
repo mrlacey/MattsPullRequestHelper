@@ -16,16 +16,16 @@ public class Program
 
         // Analyze test methods
         var testAnalysis = AnalyzeTestMethods(changedFiles);
-        var testAnalysisMessage = $"Added Tests: {testAnalysis.Added}\r\nDeleted Tests: {testAnalysis.Deleted}\r\nChanged Tests: {testAnalysis.Changed}";
+        var testAnalysisMessage = $"Added Tests: {testAnalysis.Added}\nDeleted Tests: {testAnalysis.Deleted}\nChanged Tests: {testAnalysis.Changed}";
         Console.WriteLine(testAnalysisMessage);
 
         // Analyze deleted public methods
         var deletedPublicMethods = AnalyzeDeletedPublicMethods(changedFiles);
-        var deletedMethodsMessage = "Deleted Public Methods:\r\n" + string.Join("\r\n", deletedPublicMethods);
+        var deletedMethodsMessage = "Deleted Public Methods:\n" + string.Join("\n", deletedPublicMethods);
         Console.WriteLine(deletedMethodsMessage);
 
         // Combine messages
-        var fullMessage = $"{testAnalysisMessage}\r\n\r\n{deletedMethodsMessage}";
+        var fullMessage = $"{testAnalysisMessage}\n\n{deletedMethodsMessage}";
 
         // Post to PR conversation
         await PostToPullRequest(fullMessage);
@@ -133,8 +133,8 @@ public class Program
             client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
             client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
 
-            //var contentBody = $"{{\"body\": \"{message}\"}}";
-            var contentBody = $"{{\"body\":\"a test<br/>html<br/>message\"}}";
+            var contentBody = $"{{\"body\": \"{message.Replace("\n", "<br />")}\"}}";
+            //var contentBody = $"{{\"body\":\"a test<br/>html<br/>message\"}}";
 
             var content = new StringContent(contentBody, Encoding.UTF8, "application/json");
 
@@ -153,7 +153,137 @@ public class Program
         }
     }
 
-    public static void PlaceholderMethod1()
+    public static void PlaceholderMethodA()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodB()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodC()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodD()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodE()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodF()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodG()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodH()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodI()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodJ()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodK()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodL()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodM()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodN()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodO()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodP()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodQ()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodR()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodS()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodT()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodU()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodV()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethod()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodW()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodX()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodY()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethodZ()
     {
         // Placeholder for testing deleting public methods
     }
