@@ -278,9 +278,4 @@ Console.WriteLine(line);
     {
         // Placeholder for testing deleting public methods
     }
-
-    public static void PlaceholderMethodT()
-    {
-        // Placeholder for testing deleting public methods
-    }
 }
