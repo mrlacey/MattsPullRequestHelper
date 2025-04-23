@@ -30,7 +30,7 @@ runs:
       run: dotnet run --project MyGithubActionBot/MyGithubActionBot.csproj
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
         GITHUB_WORKSPACE: ${{ inputs.workspace }}
         GITHUB_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
 
