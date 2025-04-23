@@ -127,9 +127,6 @@ public class Program
 
         var apiUrl = $"https://api.github.com/repos/{repository}/issues/{pullRequestNumber}/comments";
 
-        // Temporary debugging output
-        Console.WriteLine($"Posting to: {apiUrl}");
-
         using (var client = new HttpClient())
         {
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {githubToken}");
@@ -137,7 +134,7 @@ public class Program
             client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
 
             //var contentBody = $"{{\"body\": \"{message}\"}}";
-            var contentBody = $"{{\"body\":\"a test message\"}}";
+            var contentBody = $"{{\"body\":\"a test<br/>html<br/>message\"}}";
 
             var content = new StringContent(contentBody, Encoding.UTF8, "application/json");
 
