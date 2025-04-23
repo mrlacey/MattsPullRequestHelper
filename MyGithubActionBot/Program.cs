@@ -53,24 +53,37 @@ public class Program
                 var parentCommit = headCommit?.Parents.FirstOrDefault();
                 Console.WriteLine($"Parent commit: {parentCommit?.Sha}");
 
-                if (parentCommit != null)
+                var targetBranch = Environment.GetEnvironmentVariable("GITHUB_BASE_REF");
+                Console.WriteLine($"Target branch: {targetBranch}");
+
+                if (!string.IsNullOrEmpty(targetBranch))
                 {
-                    var diff = repo.Diff.Compare<TreeChanges>(parentCommit.Tree, headCommit.Tree);
-                    Console.WriteLine($"Number of changes: {diff.Count()}");
+                    var targetBranchCommit = repo.Branches[targetBranch]?.Tip;
+                    Console.WriteLine($"Target branch commit: {targetBranchCommit?.Sha}");
 
-                    foreach (var change in diff)
+                    if (targetBranchCommit != null)
                     {
-                        Console.WriteLine($"Changed file: {change.Path}");
+                        var diff = repo.Diff.Compare<TreeChanges>(targetBranchCommit.Tree, headCommit.Tree);
+                        Console.WriteLine($"Number of changes: {diff.Count()}");
 
-                        if (change.Path.EndsWith(".cs"))
+                        foreach (var change in diff)
                         {
-                            changedFiles.Add(change.Path);
+                            Console.WriteLine($"Changed file: {change.Path}");
+
+                            if (change.Path.EndsWith(".cs"))
+                            {
+                                changedFiles.Add(change.Path);
+                            }
                         }
+                    }
+                    else
+                    {
+                        Console.WriteLine("No commit found for the target branch.");
                     }
                 }
                 else
                 {
-                    Console.WriteLine("No parent commit found.");
+                    Console.WriteLine("Target branch is not specified.");
                 }
             }
         }
@@ -267,11 +280,6 @@ Console.WriteLine(line);
     }
 
     public static void PlaceholderMethodT()
-    {
-        // Placeholder for testing deleting public methods
-    }
-
-    public static void PlaceholderMethodU()
     {
         // Placeholder for testing deleting public methods
     }
