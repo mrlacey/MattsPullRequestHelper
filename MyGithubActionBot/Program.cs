@@ -28,27 +28,39 @@ class Program
 
     static List<string> GetChangedFiles()
     {
-        // Use environment variables to get the GitHub workspace and PR diff
+        // Use Git commands to fetch the diff for the PR
         string workspace = Environment.GetEnvironmentVariable("GITHUB_WORKSPACE") ?? "";
-        string diffFilePath = Path.Combine(workspace, "pr_diff.txt");
-
-        // Simulate fetching the diff (replace this with actual Git commands in production)
-        if (!File.Exists(diffFilePath))
-        {
-            Console.WriteLine("Error: PR diff file not found.");
-            return new List<string>();
-        }
-
         var changedFiles = new List<string>();
-        var diffLines = File.ReadAllLines(diffFilePath);
 
-        foreach (var line in diffLines)
+        try
         {
-            if (line.StartsWith("diff --git a/") && line.EndsWith(".cs"))
+            var process = new System.Diagnostics.Process
             {
-                var filePath = line.Split(' ')[2].Substring(2); // Extract file path
-                changedFiles.Add(filePath);
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "git",
+                    Arguments = "diff --name-only HEAD~1 HEAD -- '*.cs'",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    WorkingDirectory = workspace
+                }
+            };
+
+            process.Start();
+            while (!process.StandardOutput.EndOfStream)
+            {
+                var line = process.StandardOutput.ReadLine();
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    changedFiles.Add(line);
+                }
             }
+            process.WaitForExit();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching changed files: {ex.Message}");
         }
 
         return changedFiles;
