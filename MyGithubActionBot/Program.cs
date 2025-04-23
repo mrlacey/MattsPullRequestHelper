@@ -75,7 +75,10 @@ public class Program
                             foreach (var file in files)
                             {
                                 string fileName = file.filename;
+                                string patch = file.patch;
                                 Console.WriteLine($"Changed file: {fileName}");
+                                Console.WriteLine($"Diff: {patch}");
+
                                 if (fileName.EndsWith(".cs"))
                                 {
                                     changedFiles.Add(fileName);
@@ -138,7 +141,7 @@ Console.WriteLine($"Analyzing file: {file}");
 
             foreach (var line in lines)
             {
-Console.WriteLine(line);
+//Console.WriteLine(line);
 
                 if (line.Contains("public") && line.StartsWith("-"))
                 {
@@ -271,11 +274,6 @@ Console.WriteLine(line);
     }
 
     public static void PlaceholderMethodP()
-    {
-        // Placeholder for testing deleting public methods
-    }
-
-    public static void PlaceholderMethodQ()
     {
         // Placeholder for testing deleting public methods
     }
