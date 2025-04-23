@@ -134,12 +134,8 @@ public class Program
             client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
 
             var contentBody = $"{{\"body\": \"{message.Replace("\n", "<br />")}\"}}";
-            //var contentBody = $"{{\"body\":\"a test<br/>html<br/>message\"}}";
 
             var content = new StringContent(contentBody, Encoding.UTF8, "application/json");
-
-            // Temporary debugging output
-            Console.WriteLine($"Posting content: '{contentBody}'");
 
             var response = await client.PostAsync(apiUrl, content);
             if (response.IsSuccessStatusCode)
