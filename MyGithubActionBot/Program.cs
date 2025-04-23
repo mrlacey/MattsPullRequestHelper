@@ -9,7 +9,6 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        // Simulate receiving a list of changed files in a PR
         var changedFiles = GetChangedFiles();
 
         // Analyze test methods
