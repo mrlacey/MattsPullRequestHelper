@@ -2,28 +2,33 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using LibGit2Sharp;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var changedFiles = GetChangedFiles();
 
         // Analyze test methods
         var testAnalysis = AnalyzeTestMethods(changedFiles);
-        Console.WriteLine($"Added Tests: {testAnalysis.Added}");
-        Console.WriteLine($"Deleted Tests: {testAnalysis.Deleted}");
-        Console.WriteLine($"Changed Tests: {testAnalysis.Changed}");
+        var testAnalysisMessage = $"Added Tests: {testAnalysis.Added}\nDeleted Tests: {testAnalysis.Deleted}\nChanged Tests: {testAnalysis.Changed}";
+        Console.WriteLine(testAnalysisMessage);
 
         // Analyze deleted public methods
         var deletedPublicMethods = AnalyzeDeletedPublicMethods(changedFiles);
-        Console.WriteLine("Deleted Public Methods:");
-        foreach (var method in deletedPublicMethods)
-        {
-            Console.WriteLine(method);
-        }
+        var deletedMethodsMessage = "Deleted Public Methods:\n" + string.Join("\n", deletedPublicMethods);
+        Console.WriteLine(deletedMethodsMessage);
+
+        // Combine messages
+        var fullMessage = $"{testAnalysisMessage}\n\n{deletedMethodsMessage}";
+
+        // Post to PR conversation
+        await PostToPullRequest(fullMessage);
     }
 
     public static List<string> GetChangedFiles()
@@ -101,5 +106,38 @@ public class Program
         }
 
         return deletedMethods;
+    }
+
+    public static async Task PostToPullRequest(string message)
+    {
+        var githubToken = Environment.GetEnvironmentVariable("GITHUB_TOKEN");
+        var repository = Environment.GetEnvironmentVariable("GITHUB_REPOSITORY");
+        var pullRequestNumber = Environment.GetEnvironmentVariable("GITHUB_PULL_REQUEST_NUMBER");
+
+        if (string.IsNullOrEmpty(githubToken) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(pullRequestNumber))
+        {
+            Console.WriteLine("Missing required environment variables for posting to PR.");
+            return;
+        }
+
+        var apiUrl = $"https://api.github.com/repos/{repository}/issues/{pullRequestNumber}/comments";
+
+        using (var client = new HttpClient())
+        {
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {githubToken}");
+            client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
+
+            var content = new StringContent($"{{\"body\": \"{message}\"}}", Encoding.UTF8, "application/json");
+
+            var response = await client.PostAsync(apiUrl, content);
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Successfully posted to PR conversation.");
+            }
+            else
+            {
+                Console.WriteLine($"Failed to post to PR conversation. Status: {response.StatusCode}, Message: {await response.Content.ReadAsStringAsync()}");
+            }
+        }
     }
 }

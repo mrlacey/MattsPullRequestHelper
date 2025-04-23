@@ -32,6 +32,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         GITHUB_WORKSPACE: ${{ inputs.workspace }}
+       GITHUB_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
 
 branding:
   icon: code
