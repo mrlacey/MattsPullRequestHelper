@@ -43,48 +43,49 @@ public class Program
 
         try
         {
-            using (var repo = new Repository(workspace))
+            string prFilesJson = Environment.GetEnvironmentVariable("GITHUB_EVENT_PATH") ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(prFilesJson))
             {
-                Console.WriteLine("Repository successfully loaded.");
+                Console.WriteLine("GITHUB_EVENT_PATH is not set or empty.");
+                return changedFiles;
+            }
 
-                var headCommit = repo.Head.Tip;
-                Console.WriteLine($"Head commit: {headCommit?.Sha}");
+            var eventData = File.ReadAllText(prFilesJson);
+            dynamic prEvent = Newtonsoft.Json.JsonConvert.DeserializeObject(eventData);
 
-                var parentCommit = headCommit?.Parents.FirstOrDefault();
-                Console.WriteLine($"Parent commit: {parentCommit?.Sha}");
+            if (prEvent.pull_request != null && prEvent.pull_request.files_url != null)
+            {
+                string filesUrl = prEvent.pull_request.files_url;
+                Console.WriteLine($"Pull request files URL: {filesUrl}");
 
-                var targetBranch = Environment.GetEnvironmentVariable("GITHUB_BASE_REF");
-                Console.WriteLine($"Target branch: {targetBranch}");
-
-                if (!string.IsNullOrEmpty(targetBranch))
+                using (var client = new HttpClient())
                 {
-                    var targetBranchCommit = repo.Branches[targetBranch]?.Tip;
-                    Console.WriteLine($"Target branch commit: {targetBranchCommit?.Sha}");
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {Environment.GetEnvironmentVariable("GITHUB_TOKEN")}");
+                    client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
 
-                    if (targetBranchCommit != null)
+                    var response = client.GetAsync(filesUrl).Result;
+                    if (response.IsSuccessStatusCode)
                     {
-                        var diff = repo.Diff.Compare<TreeChanges>(targetBranchCommit.Tree, headCommit.Tree);
-                        Console.WriteLine($"Number of changes: {diff.Count()}");
-
-                        foreach (var change in diff)
+                        var files = Newtonsoft.Json.JsonConvert.DeserializeObject<List<dynamic>>(response.Content.ReadAsStringAsync().Result);
+                        foreach (var file in files)
                         {
-                            Console.WriteLine($"Changed file: {change.Path}");
-
-                            if (change.Path.EndsWith(".cs"))
+                            string fileName = file.filename;
+                            Console.WriteLine($"Changed file: {fileName}");
+                            if (fileName.EndsWith(".cs"))
                             {
-                                changedFiles.Add(change.Path);
+                                changedFiles.Add(fileName);
                             }
                         }
                     }
                     else
                     {
-                        Console.WriteLine("No commit found for the target branch.");
+                        Console.WriteLine($"Failed to fetch pull request files. Status: {response.StatusCode}, Message: {response.Content.ReadAsStringAsync().Result}");
                     }
                 }
-                else
-                {
-                    Console.WriteLine("Target branch is not specified.");
-                }
+            }
+            else
+            {
+                Console.WriteLine("Pull request or files_url not found in the event data.");
             }
         }
         catch (Exception ex)
