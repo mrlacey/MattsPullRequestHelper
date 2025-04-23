@@ -19,11 +19,11 @@ runs:
         dotnet-version: '9.0'
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore MyGithubActionBot/MyGithubActionBot.csproj
       shell: bash
 
     - name: Build the project
-      run: dotnet build --configuration Release
+      run: dotnet build MyGithubActionBot/MyGithubActionBot.csproj --configuration Release
       shell: bash
 
     - name: Run the bot
