@@ -136,9 +136,12 @@ public class Program
             client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
             client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
 
-            var content = new StringContent($"{{\"body\": \"{message}\"}}", Encoding.UTF8, "application/json");
+            var contentBody = $"{{\"body\": \"{message}\"}}";
 
-            Console.WriteLine($"Posting content: '{content}'");
+            var content = new StringContent(contentBody, Encoding.UTF8, "application/json");
+
+            // Temporary debugging output
+            Console.WriteLine($"Posting content: '{contentBody}'");
 
             var response = await client.PostAsync(apiUrl, content);
             if (response.IsSuccessStatusCode)
