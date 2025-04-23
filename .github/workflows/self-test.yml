@@ -16,4 +16,6 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Use MattsPullRequestHelper
-        uses: mrlacey/MattsPullRequestHelper@main # or specify a tag or specific commit SHA
+        uses: mrlacey/MattsPullRequestHelper@main
+        with:
+          github-token: ${{ secrets.PR_COMMENT_TOKEN }}
