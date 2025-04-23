@@ -153,7 +153,7 @@ Console.WriteLine($"diff: {diff}");
 
             foreach (var line in diff.Split('\n'))
             {
-Console.WriteLine($"Line: {diff}");
+Console.WriteLine($"Line: {line}");
                 // Check for deleted public methods in the diff
                 if (line.StartsWith("-") && line.Contains("public") && line.Contains("("))
                 {
