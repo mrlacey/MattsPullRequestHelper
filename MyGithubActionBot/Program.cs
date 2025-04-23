@@ -114,9 +114,14 @@ public class Program
         var repository = Environment.GetEnvironmentVariable("GITHUB_REPOSITORY");
         var pullRequestNumber = Environment.GetEnvironmentVariable("GITHUB_PULL_REQUEST_NUMBER");
 
-        if (string.IsNullOrEmpty(githubToken) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(pullRequestNumber))
+        var missingVariables = new List<string>();
+        if (string.IsNullOrEmpty(githubToken)) missingVariables.Add("GITHUB_TOKEN");
+        if (string.IsNullOrEmpty(repository)) missingVariables.Add("GITHUB_REPOSITORY");
+        if (string.IsNullOrEmpty(pullRequestNumber)) missingVariables.Add("GITHUB_PULL_REQUEST_NUMBER");
+
+        if (missingVariables.Any())
         {
-            Console.WriteLine("Missing required environment variables for posting to PR.");
+            Console.WriteLine($"Missing required environment variables: {string.Join(", ", missingVariables)}");
             return;
         }
 
@@ -139,5 +144,55 @@ public class Program
                 Console.WriteLine($"Failed to post to PR conversation. Status: {response.StatusCode}, Message: {await response.Content.ReadAsStringAsync()}");
             }
         }
+    }
+
+    public static void PlaceholderMethod1()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethod2()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethod3()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethod4()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethod5()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethod6()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethod7()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethod8()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethod9()
+    {
+        // Placeholder for testing deleting public methods
+    }
+
+    public static void PlaceholderMethod10()
+    {
+        // Placeholder for testing deleting public methods
     }
 }
