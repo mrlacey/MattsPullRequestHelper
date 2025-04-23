@@ -96,7 +96,7 @@ public class Program
             {
                 if (line.Contains("public") && line.Contains("-"))
                 {
-                    var match = Regex.Match(line, @"public\s+\w+\s+(\w+)\s*\(");
+                    var match = Regex.Match(line, @"\s*public\s+\w+\s+(\w+)\s*\(");
                     if (match.Success)
                     {
                         deletedMethods.Add(match.Groups[1].Value);
