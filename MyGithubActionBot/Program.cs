@@ -14,7 +14,7 @@ public class Program
     {
         var changedFiles = GetChangedFiles();
 
-        var changedFilesMessage = Changed Files:\n" + string.Join("\n", changedFiles);
+        var changedFilesMessage = "Changed Files:\n" + string.Join("\n", changedFiles);
         Console.WriteLine(changedFilesMessage);
 
         // Analyze test methods
@@ -262,11 +262,6 @@ Console.WriteLine(line);
     }
 
     public static void PlaceholderMethodV()
-    {
-        // Placeholder for testing deleting public methods
-    }
-
-    public static void PlaceholderMethod()
     {
         // Placeholder for testing deleting public methods
     }
