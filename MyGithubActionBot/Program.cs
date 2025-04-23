@@ -92,8 +92,12 @@ public class Program
         foreach (var file in changedFiles.Where(f => f.EndsWith(".cs")))
         {
             var lines = File.ReadAllLines(file);
+Console.WriteLine($"Analyzing file: {file}");
+
             foreach (var line in lines)
             {
+Console.WriteLine(line);
+
                 if (line.Contains("public") && line.StartsWith("-"))
                 {
                     var match = Regex.Match(line, @"-\s*public\s+\w+\s+(\w+)\s*\(");
