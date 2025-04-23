@@ -146,8 +146,14 @@ public class Program
         {
             //var lines = File.ReadAllLines(file);
 
-            foreach (var line in file.patch.ToString().Split('\n'))
+            var diff = file.patch.ToString();
+
+Console.WriteLine($"Analyzing diff for file: {file.filename}");
+Console.WriteLine($"diff: {diff}");
+
+            foreach (var line in diff.Split('\n'))
             {
+Console.WriteLine($"Line: {diff}");
                 // Check for deleted public methods in the diff
                 if (line.StartsWith("-") && line.Contains("public") && line.Contains("("))
                 {
@@ -265,11 +271,6 @@ public class Program
     }
 
     public static void PlaceholderMethodM()
-    {
-        // Placeholder for testing deleting public methods
-    }
-
-    public static void PlaceholderMethodN()
     {
         // Placeholder for testing deleting public methods
     }
