@@ -20,12 +20,15 @@ runs:
 
     - name: Restore dependencies
       run: dotnet restore
+      shell: bash
 
     - name: Build the project
       run: dotnet build --configuration Release
+      shell: bash
 
     - name: Run the bot
       run: dotnet run --project MyGithubActionBot/MyGithubActionBot.csproj
+      shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github-token }}
         GITHUB_WORKSPACE: ${{ inputs.workspace }}
