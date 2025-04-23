@@ -136,7 +136,8 @@ public class Program
             client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
             client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
 
-            var contentBody = $"{{\"body\": \"{message}\"}}";
+            //var contentBody = $"{{\"body\": \"{message}\"}}";
+            var contentBody = $"{{\"body\":\"a test message\"}}";
 
             var content = new StringContent(contentBody, Encoding.UTF8, "application/json");
 
@@ -161,11 +162,6 @@ public class Program
     }
 
     public static void PlaceholderMethod2()
-    {
-        // Placeholder for testing deleting public methods
-    }
-
-    public static void PlaceholderMethod3()
     {
         // Placeholder for testing deleting public methods
     }
