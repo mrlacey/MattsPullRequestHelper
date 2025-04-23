@@ -51,6 +51,8 @@ public class Program
             }
 
             var eventData = File.ReadAllText(prFilesJson);
+            Console.WriteLine($"Event Data: {eventData}"); // Log the entire event payload for debugging
+
             dynamic prEvent = Newtonsoft.Json.JsonConvert.DeserializeObject(eventData);
 
             if (prEvent.pull_request != null && prEvent.pull_request.files_url != null)
@@ -271,11 +273,6 @@ Console.WriteLine(line);
     }
 
     public static void PlaceholderMethodR()
-    {
-        // Placeholder for testing deleting public methods
-    }
-
-    public static void PlaceholderMethodS()
     {
         // Placeholder for testing deleting public methods
     }

@@ -1,12 +1,13 @@
 name: Self-Test
 
 on:
-#  push:
-#    branches:
-#      - main
   pull_request:
     branches:
       - main
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 jobs:
   example-job:
@@ -14,6 +15,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Debug Event Payload
+        run: cat $GITHUB_EVENT_PATH
 
       - name: Use MattsPullRequestHelper
         uses: mrlacey/MattsPullRequestHelper@main
