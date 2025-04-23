@@ -14,6 +14,9 @@ public class Program
     {
         var changedFiles = GetChangedFiles();
 
+        var changedFilesMessage = Changed Files:\n" + string.Join("\n", changedFiles);
+        Console.WriteLine(changedFilesMessage);
+
         // Analyze test methods
         var testAnalysis = AnalyzeTestMethods(changedFiles);
         var testAnalysisMessage = $"Added Tests: {testAnalysis.Added}\nDeleted Tests: {testAnalysis.Deleted}\nChanged Tests: {testAnalysis.Changed}";
