@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using LibGit2Sharp;
 
 class Program
 {
@@ -28,35 +29,28 @@ class Program
 
     static List<string> GetChangedFiles()
     {
-        // Use Git commands to fetch the diff for the PR
         string workspace = Environment.GetEnvironmentVariable("GITHUB_WORKSPACE") ?? "";
         var changedFiles = new List<string>();
 
         try
         {
-            var process = new System.Diagnostics.Process
+            using (var repo = new Repository(workspace))
             {
-                StartInfo = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "git",
-                    Arguments = "diff --name-only HEAD~1 HEAD -- '*.cs'",
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WorkingDirectory = workspace
-                }
-            };
+                var headCommit = repo.Head.Tip;
+                var parentCommit = headCommit.Parents.FirstOrDefault();
 
-            process.Start();
-            while (!process.StandardOutput.EndOfStream)
-            {
-                var line = process.StandardOutput.ReadLine();
-                if (!string.IsNullOrWhiteSpace(line))
+                if (parentCommit != null)
                 {
-                    changedFiles.Add(line);
+                    var diff = repo.Diff.Compare<TreeChanges>(parentCommit.Tree, headCommit.Tree);
+                    foreach (var change in diff)
+                    {
+                        if (change.Path.EndsWith(".cs"))
+                        {
+                            changedFiles.Add(change.Path);
+                        }
+                    }
                 }
             }
-            process.WaitForExit();
         }
         catch (Exception ex)
         {
