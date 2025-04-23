@@ -28,8 +28,30 @@ class Program
 
     static List<string> GetChangedFiles()
     {
-        // Placeholder: Replace with logic to fetch changed files from the PR diff
-        return new List<string> { "ExampleTestFile.cs", "ExampleCodeFile.cs" };
+        // Use environment variables to get the GitHub workspace and PR diff
+        string workspace = Environment.GetEnvironmentVariable("GITHUB_WORKSPACE") ?? "";
+        string diffFilePath = Path.Combine(workspace, "pr_diff.txt");
+
+        // Simulate fetching the diff (replace this with actual Git commands in production)
+        if (!File.Exists(diffFilePath))
+        {
+            Console.WriteLine("Error: PR diff file not found.");
+            return new List<string>();
+        }
+
+        var changedFiles = new List<string>();
+        var diffLines = File.ReadAllLines(diffFilePath);
+
+        foreach (var line in diffLines)
+        {
+            if (line.StartsWith("diff --git a/") && line.EndsWith(".cs"))
+            {
+                var filePath = line.Split(' ')[2].Substring(2); // Extract file path
+                changedFiles.Add(filePath);
+            }
+        }
+
+        return changedFiles;
     }
 
     static (int Added, int Deleted, int Changed) AnalyzeTestMethods(List<string> changedFiles)
