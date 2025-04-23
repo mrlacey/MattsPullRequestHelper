@@ -39,23 +39,38 @@ public class Program
         string workspace = Environment.GetEnvironmentVariable("GITHUB_WORKSPACE") ?? "";
         var changedFiles = new List<string>();
 
+        Console.WriteLine($"Workspace directory: {workspace}");
+
         try
         {
             using (var repo = new Repository(workspace))
             {
+                Console.WriteLine("Repository successfully loaded.");
+
                 var headCommit = repo.Head.Tip;
-                var parentCommit = headCommit.Parents.FirstOrDefault();
+                Console.WriteLine($"Head commit: {headCommit?.Sha}");
+
+                var parentCommit = headCommit?.Parents.FirstOrDefault();
+                Console.WriteLine($"Parent commit: {parentCommit?.Sha}");
 
                 if (parentCommit != null)
                 {
                     var diff = repo.Diff.Compare<TreeChanges>(parentCommit.Tree, headCommit.Tree);
+                    Console.WriteLine($"Number of changes: {diff.Count()}");
+
                     foreach (var change in diff)
                     {
+                        Console.WriteLine($"Changed file: {change.Path}");
+
                         if (change.Path.EndsWith(".cs"))
                         {
                             changedFiles.Add(change.Path);
                         }
                     }
+                }
+                else
+                {
+                    Console.WriteLine("No parent commit found.");
                 }
             }
         }
@@ -257,11 +272,6 @@ Console.WriteLine(line);
     }
 
     public static void PlaceholderMethodU()
-    {
-        // Placeholder for testing deleting public methods
-    }
-
-    public static void PlaceholderMethodV()
     {
         // Placeholder for testing deleting public methods
     }
