@@ -119,7 +119,7 @@ public class Program
         foreach (var file in changedFiles)
         {
             Console.WriteLine($"Analyzing file: {file.filename}");
-            //var lines = File.ReadAllLines(file);
+            
             foreach (var line in file.patch.ToString().Split('\n'))
             {
                 // TODO: add appropriate tests 
@@ -152,18 +152,15 @@ public class Program
             var diff = file.patch.ToString();
 
             Console.WriteLine($"Analyzing diff for file: {file.filename}");
-            Console.WriteLine($"diff: {diff}");
 
             foreach (var line in diff.Split('\n'))
             {
-                Console.WriteLine($"Line: {line}");
-                // Check for deleted public methods in the diff
                 if (line.StartsWith("-") && line.Contains("public") && line.Contains("("))
                 {
                     var match = Regex.Match(line, DeletedPublicMethodRegex);
                     if (match.Success)
                     {
-                        deletedMethods.Add(match.Groups[1].Value);
+                        deletedMethods.Add($"- {file.filename} : {match.Groups[1].Value}");
                     }
                 }
             }
