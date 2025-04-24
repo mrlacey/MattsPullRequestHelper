@@ -104,10 +104,13 @@ namespace MyGithubActionBot.Tests
             string[] linesAddingMethods = [
             
                 "+ [TestMethod] public void AddedTest() { }",
+                "+ [TestMethod]",
+                "+\t[TestMethod]",
             ];
             string[] linesDeletingMethods = [
             
                 "- [TestMethod] public void DeletedTest() { }",
+                "- [TestMethod]",
             ];
             string[] miscOtherLine = [
             

@@ -124,16 +124,20 @@ public class Program
 
                 if (line.TrimStart('+', '-', ' ', '\t').StartsWith("//")) continue; // Ignore commented lines
 
-                // TODO: also ensure that support all test types (inc. for nunit and xunit too)
-                if (line.StartsWith("+") && line.Contains("[TestMethod]"))
-                {
-                    Console.WriteLine($"Added test method: {line}");
-                    added++;
-                }
-                else if (line.StartsWith("-") && line.Contains("[TestMethod]"))
-                {
-                    Console.WriteLine($"Deleted test method: {line}");
-                    deleted++;
+                List<string> testAttributes = new List<string> { "[TestMethod]", "[DataRow(", "[Fact]", "[InlineData(", "[Test]", "[TestCase(" }; 
+
+                if (testAttributes.Any(attr => line.Contains(attr)))
+                { 
+                    if (line.StartsWith("+"))
+                    {
+                        Console.WriteLine($"Added test method: {line}");
+                        added++;
+                    }
+                    else if (line.StartsWith("-"))
+                    {
+                        Console.WriteLine($"Deleted test method: {line}");
+                        deleted++;
+                    }
                 }
             }
         }
