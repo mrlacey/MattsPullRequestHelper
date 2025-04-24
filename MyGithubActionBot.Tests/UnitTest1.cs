@@ -121,8 +121,8 @@ namespace MyGithubActionBot.Tests
 
             var result = Program.AnalyzeTestLines(allLines);
 
-            Assert.Equal(linesAddingMethods.Length, result.Added);
-            Assert.Equal(linesDeletingMethods.Length, result.Deleted);
+            Assert.Equal(linesAddingMethods.Length, result.Item1); // Added
+            Assert.Equal(linesDeletingMethods.Length, result.Item2); // Deleted
         }
     }
 }
