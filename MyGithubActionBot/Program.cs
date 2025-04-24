@@ -80,7 +80,6 @@ public class Program
                                 string fileName = file.filename;
                                 string patch = file.patch;
                                 Console.WriteLine($"Changed file: {fileName}");
-                                Console.WriteLine($"Diff: {patch}");
 
                                 if (fileName.EndsWith(".cs"))
                                 {
