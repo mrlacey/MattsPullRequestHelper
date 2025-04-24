@@ -83,6 +83,10 @@ namespace MyGithubActionBot.Tests
         [InlineData("- protected static void MyMethod2()", false, "")]
         [InlineData("- protected async void MyMethod3()", false, "")]
         [InlineData("- protected static async MyMethod4()", false, "")]
+        [InlineData("  - public void MyMethod()", false, "")]
+        [InlineData(" - public static void MyMethod2()", false, "")]
+        [InlineData("   - public async void MyMethod3()", false, "")]
+        [InlineData("  - public static async MyMethod4()", false, "")]
         public void TestDeletedPublicMethodRegex_ValidValues(string input, bool isMatchExpected, string expectedMethodName)
         {
             var regex = new Regex(Program.DeletedPublicMethodRegex);

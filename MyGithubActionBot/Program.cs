@@ -11,7 +11,7 @@ using Newtonsoft.Json;
 
 public class Program
 {
-    public const string DeletedPublicMethodRegex = @"-\s*public\s+(?:\w+\s+)*?(\w+)\s*\(";
+    public const string DeletedPublicMethodRegex = @"^-\s*public\s+(?:\w+\s+)*?(\w+)\s*\(";
 
     public static async Task Main(string[] args)
     {
