@@ -11,6 +11,8 @@ using Newtonsoft.Json;
 
 public class Program
 {
+    public const string DeletedPublicMethodRegex = @"-\s*public\s+\w+\s+(\w+)\s*\(";
+
     public static async Task Main(string[] args)
     {
         var changedFiles = GetChangedFiles();
@@ -147,21 +149,18 @@ public class Program
 
         foreach (var file in changedFiles)
         {
-            //var lines = File.ReadAllLines(file);
-
             var diff = file.patch.ToString();
 
-Console.WriteLine($"Analyzing diff for file: {file.filename}");
-Console.WriteLine($"diff: {diff}");
+            Console.WriteLine($"Analyzing diff for file: {file.filename}");
+            Console.WriteLine($"diff: {diff}");
 
             foreach (var line in diff.Split('\n'))
             {
-Console.WriteLine($"Line: {line}");
+                Console.WriteLine($"Line: {line}");
                 // Check for deleted public methods in the diff
                 if (line.StartsWith("-") && line.Contains("public") && line.Contains("("))
                 {
-                    // TODO: Add tests to verify this regex matches static and async methods and those with generic return types
-                    var match = Regex.Match(line, @"-\s*public\s+\w+\s+(\w+)\s*\(");
+                    var match = Regex.Match(line, DeletedPublicMethodRegex);
                     if (match.Success)
                     {
                         deletedMethods.Add(match.Groups[1].Value);
