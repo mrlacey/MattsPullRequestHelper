@@ -166,6 +166,11 @@ public class Program
             }
         }
 
+        if (deletedMethods.Count == 0)
+        {
+            deletedMethods.Add("* none *");
+        }
+
         return deletedMethods;
     }
 
