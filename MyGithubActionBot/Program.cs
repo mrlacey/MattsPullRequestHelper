@@ -269,9 +269,4 @@ Console.WriteLine($"Line: {diff}");
     {
         // Placeholder for testing deleting public methods
     }
-
-    public static void PlaceholderMethodM()
-    {
-        // Placeholder for testing deleting public methods
-    }
 }
