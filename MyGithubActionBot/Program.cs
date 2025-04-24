@@ -150,8 +150,8 @@ public class Program
             var patch = file.patch?.ToString() ?? string.Empty; // Handle possible null
             var lines = patch.Split('\n');
             var result = AnalyzeTestLines(lines); // Use explicit method call
-            totalAdded += result.Added;
-            totalDeleted += result.Deleted;
+            totalAdded += result.Item1;
+            totalDeleted += result.Item2;
         }
 
         return (totalAdded, totalDeleted);
