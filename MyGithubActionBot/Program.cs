@@ -227,7 +227,7 @@ public class Program
             client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
             client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
 
-            var contentBody = $"{{\"body\": \"{message.Replace("\n", "<br />")}\"}}";
+            var contentBody = $"{{\"body\": \"<b>PullRequestHelper:</b><br /><br />{message.Replace("\n", "<br />")}\"}}";
 
             var content = new StringContent(contentBody, Encoding.UTF8, "application/json");
 
