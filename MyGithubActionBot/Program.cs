@@ -54,14 +54,14 @@ public class Program
             }
 
             var eventData = File.ReadAllText(prFilesJson);
-            dynamic prEvent = JsonConvert.DeserializeObject(eventData);
+            dynamic? prEvent = JsonConvert.DeserializeObject(eventData);
 
-            if (prEvent.pull_request != null)
+            if (prEvent?.pull_request != null)
             {
-                string repository = Environment.GetEnvironmentVariable("GITHUB_REPOSITORY");
-                string pullRequestNumber = prEvent.pull_request.number;
+                string? repository = Environment.GetEnvironmentVariable("GITHUB_REPOSITORY");
+                string? pullRequestNumber = prEvent.pull_request.number?.ToString();
 
-                if (!string.IsNullOrEmpty(repository) && pullRequestNumber != null)
+                if (!string.IsNullOrEmpty(repository) && !string.IsNullOrEmpty(pullRequestNumber))
                 {
                     string filesUrl = $"https://api.github.com/repos/{repository}/pulls/{pullRequestNumber}/files";
                     Console.WriteLine($"Pull request files URL: {filesUrl}");
@@ -75,16 +75,23 @@ public class Program
                         if (response.IsSuccessStatusCode)
                         {
                             var files = JsonConvert.DeserializeObject<List<dynamic>>(response.Content.ReadAsStringAsync().Result);
-                            foreach (var file in files)
-                            {
-                                string fileName = file.filename;
-                                string patch = file.patch;
-                                Console.WriteLine($"Changed file: {fileName}");
 
-                                if (fileName.EndsWith(".cs"))
+                            if (files is not null)
+                            {
+                                foreach (var file in files)
                                 {
-                                    changedFiles.Add(file);
+                                    string fileName = file.filename?.ToString() ?? string.Empty;
+                                    Console.WriteLine($"Changed file: {fileName}");
+
+                                    if (fileName.EndsWith(".cs"))
+                                    {
+                                        changedFiles.Add(file);
+                                    }
                                 }
+                            }
+                            else
+                            {
+                                Console.WriteLine("No files found in the pull request.");
                             }
                         }
                         else
@@ -150,7 +157,9 @@ public class Program
 
         foreach (var file in changedFiles)
         {
-            Console.WriteLine($"Analyzing file: {file.filename}");
+            string filename = file.filename?.ToString() ?? string.Empty;
+            Console.WriteLine($"Analyzing file: {filename}");
+            
             var patch = file.patch?.ToString() ?? string.Empty; // Handle possible null
             var lines = patch.Split('\n');
             var result = AnalyzeTestLines(lines); // Use explicit method call
@@ -167,9 +176,10 @@ public class Program
 
         foreach (var file in changedFiles)
         {
-            var diff = file.patch.ToString();
+            var diff = file.patch?.ToString() ?? string.Empty;
+            var filename = file.filename?.ToString() ?? string.Empty;
 
-            Console.WriteLine($"Analyzing diff for file: {file.filename}");
+            Console.WriteLine($"Analyzing diff for file: {filename}");
 
             foreach (var line in diff.Split('\n'))
             {
@@ -178,7 +188,7 @@ public class Program
                     var match = Regex.Match(line, DeletedPublicMethodRegex);
                     if (match.Success)
                     {
-                        deletedMethods.Add($"- {file.filename} : {match.Groups[1].Value}");
+                        deletedMethods.Add($"- {filename} : {match.Groups[1].Value}");
                     }
                 }
             }
