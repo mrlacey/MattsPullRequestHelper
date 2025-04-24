@@ -97,5 +97,32 @@ namespace MyGithubActionBot.Tests
 
             Assert.Equal(expectedMethodName, match.Groups[1].Value);
         }
+
+        [Fact]
+        public void AnalyzeTestLines_ShouldCorrectlyCountAddedAndDeletedTests()
+        {
+            string[] linesAddingMethods = [
+            
+                "+ [TestMethod] public void AddedTest() { }",
+            ];
+            string[] linesDeletingMethods = [
+            
+                "- [TestMethod] public void DeletedTest() { }",
+            ];
+            string[] miscOtherLine = [
+            
+                "+ // [TestMethod] public void CommentedOutAddedTest() { }",
+                "- // [TestMethod] public void CommentedOutDeletedTest() { }",
+                "+ public void NonTestMethod() { }",
+                "- public void AnotherNonTestMethod() { }"
+            ];
+
+            var allLines = linesAddingMethods.Concat(linesDeletingMethods).Concat(miscOtherLine).ToArray();
+
+            var result = Program.AnalyzeTestLines(allLines);
+
+            Assert.Equal(linesAddingMethods.Length, result.Added);
+            Assert.Equal(linesDeletingMethods.Length, result.Deleted);
+        }
     }
 }

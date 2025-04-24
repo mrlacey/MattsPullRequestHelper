@@ -112,23 +112,24 @@ public class Program
         return changedFiles;
     }
 
-    public static (int Added, int Deleted) AnalyzeTestMethods(List<dynamic> changedFiles)
+    public static (int Added, int Deleted) AnalyzeTestLines(string[] lines)
     {
         int added = 0, deleted = 0;
 
-        foreach (var file in changedFiles)
+        if (lines is not null)
         {
-            Console.WriteLine($"Analyzing file: {file.filename}");
-            foreach (var line in file.patch.ToString().Split('\n'))
+            foreach (var line in lines)
             {
+                if (line is null) continue;
+
                 // TODO: add appropriate tests 
                 // TODO: also ensure that support all test types (inc. for nunit and xunit too)
-                if (line.StartsWith("+") && line.Contains("[TestMethod]"))
+                if (line.StartsWith("+") && line.Contains("[TestMethod]") && !line.TrimStart('+', ' ', '\t').StartsWith("//"))
                 {
                     Console.WriteLine($"Added test method: {line}");
                     added++;
                 }
-                else if (line.StartsWith("-") && line.Contains("[TestMethod]"))
+                else if (line.StartsWith("-") && line.Contains("[TestMethod]") && !line.TrimStart('-', ' ', '\t').StartsWith("//"))
                 {
                     Console.WriteLine($"Deleted test method: {line}");
                     deleted++;
@@ -137,6 +138,23 @@ public class Program
         }
 
         return (added, deleted);
+    }
+
+    public static (int Added, int Deleted) AnalyzeTestMethods(List<dynamic> changedFiles)
+    {
+        int totalAdded = 0, totalDeleted = 0;
+
+        foreach (var file in changedFiles)
+        {
+            Console.WriteLine($"Analyzing file: {file.filename}");
+            var patch = file.patch?.ToString() ?? string.Empty; // Handle possible null
+            var lines = patch.Split('\n');
+            var result = AnalyzeTestLines(lines); // Use explicit method call
+            totalAdded += result.Added;
+            totalDeleted += result.Deleted;
+        }
+
+        return (totalAdded, totalDeleted);
     }
 
     public static List<string> AnalyzeDeletedPublicMethods(List<dynamic> changedFiles)
