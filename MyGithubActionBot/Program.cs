@@ -120,6 +120,8 @@ public class Program
             //var lines = File.ReadAllLines(file);
             foreach (var line in file.patch.ToString().Split('\n'))
             {
+                // TODO: add appropriate tests 
+                // TODO: also ensure that support all test types (inc. for nunit nad xunit too)
                 if (line.StartsWith("+") && line.Contains("[TestMethod]"))
                 {
                     added++;
@@ -128,6 +130,7 @@ public class Program
                 {
                     deleted++;
                 }
+                // TODO: work out if/how to track changed tests
                 // else if (line.StartsWith(" ") && line.Contains("[TestMethod]"))
                 // {
                 //     changed++;
@@ -153,10 +156,11 @@ Console.WriteLine($"diff: {diff}");
 
             foreach (var line in diff.Split('\n'))
             {
-Console.WriteLine($"Line: {diff}");
+Console.WriteLine($"Line: {line}");
                 // Check for deleted public methods in the diff
                 if (line.StartsWith("-") && line.Contains("public") && line.Contains("("))
                 {
+                    // TODO: Add tests to verify this regex matches static and async methods and those with generic return types
                     var match = Regex.Match(line, @"-\s*public\s+\w+\s+(\w+)\s*\(");
                     if (match.Success)
                     {
