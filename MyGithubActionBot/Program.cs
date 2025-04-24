@@ -126,10 +126,12 @@ public class Program
                 // TODO: also ensure that support all test types (inc. for nunit nad xunit too)
                 if (line.StartsWith("+") && line.Contains("[TestMethod]"))
                 {
+Console.WriteLine($"Added test method: {line}");
                     added++;
                 }
                 else if (line.StartsWith("-") && line.Contains("[TestMethod]"))
                 {
+                    Console.WriteLine($"Deleted test method: {line}");
                     deleted++;
                 }
                 // TODO: work out if/how to track changed tests
