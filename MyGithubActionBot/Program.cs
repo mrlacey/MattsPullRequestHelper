@@ -11,6 +11,8 @@ using Newtonsoft.Json;
 
 public class Program
 {
+    public const string DeletedPublicMethodRegex = @"^\-\s*public\s+(?:(?:static|async|virtual|override|sealed|abstract)\s+)*(?:\w+(?:<[^>]+>)?|\([^)]+\))\s+(\w+)\s*\(";
+
     public static async Task Main(string[] args)
     {
         var changedFiles = GetChangedFiles();
@@ -20,7 +22,7 @@ public class Program
 
         // Analyze test methods
         var testAnalysis = AnalyzeTestMethods(changedFiles);
-        var testAnalysisMessage = $"Added Tests: {testAnalysis.Added}\nDeleted Tests: {testAnalysis.Deleted}\nChanged Tests: {testAnalysis.Changed}";
+        var testAnalysisMessage = $"Added Tests: {testAnalysis.Added}\nDeleted Tests: {testAnalysis.Deleted}";
         Console.WriteLine(testAnalysisMessage);
 
         // Analyze deleted public methods
@@ -52,14 +54,14 @@ public class Program
             }
 
             var eventData = File.ReadAllText(prFilesJson);
-            dynamic prEvent = JsonConvert.DeserializeObject(eventData);
+            dynamic? prEvent = JsonConvert.DeserializeObject(eventData);
 
-            if (prEvent.pull_request != null)
+            if (prEvent?.pull_request != null)
             {
-                string repository = Environment.GetEnvironmentVariable("GITHUB_REPOSITORY");
-                string pullRequestNumber = prEvent.pull_request.number;
+                string? repository = Environment.GetEnvironmentVariable("GITHUB_REPOSITORY");
+                string? pullRequestNumber = prEvent.pull_request.number?.ToString();
 
-                if (!string.IsNullOrEmpty(repository) && pullRequestNumber != null)
+                if (!string.IsNullOrEmpty(repository) && !string.IsNullOrEmpty(pullRequestNumber))
                 {
                     string filesUrl = $"https://api.github.com/repos/{repository}/pulls/{pullRequestNumber}/files";
                     Console.WriteLine($"Pull request files URL: {filesUrl}");
@@ -73,17 +75,23 @@ public class Program
                         if (response.IsSuccessStatusCode)
                         {
                             var files = JsonConvert.DeserializeObject<List<dynamic>>(response.Content.ReadAsStringAsync().Result);
-                            foreach (var file in files)
-                            {
-                                string fileName = file.filename;
-                                string patch = file.patch;
-                                Console.WriteLine($"Changed file: {fileName}");
-                                Console.WriteLine($"Diff: {patch}");
 
-                                if (fileName.EndsWith(".cs"))
+                            if (files is not null)
+                            {
+                                foreach (var file in files)
                                 {
-                                    changedFiles.Add(file);
+                                    string fileName = file.filename?.ToString() ?? string.Empty;
+                                    Console.WriteLine($"Changed file: {fileName}");
+
+                                    if (fileName.EndsWith(".cs"))
+                                    {
+                                        changedFiles.Add(file);
+                                    }
                                 }
+                            }
+                            else
+                            {
+                                Console.WriteLine("No files found in the pull request.");
                             }
                         }
                         else
@@ -110,35 +118,56 @@ public class Program
         return changedFiles;
     }
 
-    public static (int Added, int Deleted, int Changed) AnalyzeTestMethods(List<dynamic> changedFiles)
+    public static (int Added, int Deleted) AnalyzeTestLines(string[] lines)
     {
-        int added = 0, deleted = 0, changed = 0;
+        int added = 0, deleted = 0;
 
-        foreach (var file in changedFiles)
+        if (lines is not null)
         {
-            Console.WriteLine($"Analyzing file: {file.filename}");
-            //var lines = File.ReadAllLines(file);
-            foreach (var line in file.patch.ToString().Split('\n'))
+            foreach (var line in lines)
             {
-                // TODO: add appropriate tests 
-                // TODO: also ensure that support all test types (inc. for nunit nad xunit too)
-                if (line.StartsWith("+") && line.Contains("[TestMethod]"))
-                {
-                    added++;
+                if (line is null) continue;
+
+                if (line.TrimStart('+', '-', ' ', '\t').StartsWith("//")) continue; // Ignore commented lines
+
+                List<string> testAttributes = new List<string> { "[TestMethod]", "[DataRow(", "[Fact]", "[InlineData(", "[Test]", "[TestCase(" }; 
+
+                if (testAttributes.Any(attr => line.Contains(attr)))
+                { 
+                    if (line.StartsWith("+"))
+                    {
+                        Console.WriteLine($"Added test method: {line}");
+                        added++;
+                    }
+                    else if (line.StartsWith("-"))
+                    {
+                        Console.WriteLine($"Deleted test method: {line}");
+                        deleted++;
+                    }
                 }
-                else if (line.StartsWith("-") && line.Contains("[TestMethod]"))
-                {
-                    deleted++;
-                }
-                // TODO: work out if/how to track changed tests
-                // else if (line.StartsWith(" ") && line.Contains("[TestMethod]"))
-                // {
-                //     changed++;
-                // }
             }
         }
 
-        return (added, deleted, changed);
+        return (added, deleted);
+    }
+
+    public static (int Added, int Deleted) AnalyzeTestMethods(List<dynamic> changedFiles)
+    {
+        int totalAdded = 0, totalDeleted = 0;
+
+        foreach (var file in changedFiles)
+        {
+            string filename = file.filename?.ToString() ?? string.Empty;
+            Console.WriteLine($"Analyzing file: {filename}");
+            
+            var patch = file.patch?.ToString() ?? string.Empty; // Handle possible null
+            var lines = patch.Split('\n');
+            var result = AnalyzeTestLines(lines); // Use explicit method call
+            totalAdded += result.Item1;
+            totalDeleted += result.Item2;
+        }
+
+        return (totalAdded, totalDeleted);
     }
 
     public static List<string> AnalyzeDeletedPublicMethods(List<dynamic> changedFiles)
@@ -147,27 +176,27 @@ public class Program
 
         foreach (var file in changedFiles)
         {
-            //var lines = File.ReadAllLines(file);
+            var diff = file.patch?.ToString() ?? string.Empty;
+            var filename = file.filename?.ToString() ?? string.Empty;
 
-            var diff = file.patch.ToString();
-
-Console.WriteLine($"Analyzing diff for file: {file.filename}");
-Console.WriteLine($"diff: {diff}");
+            Console.WriteLine($"Analyzing diff for file: {filename}");
 
             foreach (var line in diff.Split('\n'))
             {
-Console.WriteLine($"Line: {line}");
-                // Check for deleted public methods in the diff
                 if (line.StartsWith("-") && line.Contains("public") && line.Contains("("))
                 {
-                    // TODO: Add tests to verify this regex matches static and async methods and those with generic return types
-                    var match = Regex.Match(line, @"-\s*public\s+\w+\s+(\w+)\s*\(");
+                    var match = Regex.Match(line, DeletedPublicMethodRegex);
                     if (match.Success)
                     {
-                        deletedMethods.Add(match.Groups[1].Value);
+                        deletedMethods.Add($"- {filename} : {match.Groups[1].Value}");
                     }
                 }
             }
+        }
+
+        if (deletedMethods.Count == 0)
+        {
+            deletedMethods.Add("* none *");
         }
 
         return deletedMethods;
@@ -265,11 +294,6 @@ Console.WriteLine($"Line: {line}");
     }
 
     public static void PlaceholderMethodK()
-    {
-        // Placeholder for testing deleting public methods
-    }
-
-    public static void PlaceholderMethodL()
     {
         // Placeholder for testing deleting public methods
     }
