@@ -2,6 +2,8 @@ name: Self-Test
 
 on:
   pull_request:
+    paths:
+      - '**/*.cs'
     branches:
       - main
     types:
