@@ -122,14 +122,15 @@ public class Program
             {
                 if (line is null) continue;
 
-                // TODO: add appropriate tests 
+                if (line.TrimStart('+', '-', ' ', '\t').StartsWith("//")) continue; // Ignore commented lines
+
                 // TODO: also ensure that support all test types (inc. for nunit and xunit too)
-                if (line.StartsWith("+") && line.Contains("[TestMethod]") && !line.TrimStart('+', ' ', '\t').StartsWith("//"))
+                if (line.StartsWith("+") && line.Contains("[TestMethod]"))
                 {
                     Console.WriteLine($"Added test method: {line}");
                     added++;
                 }
-                else if (line.StartsWith("-") && line.Contains("[TestMethod]") && !line.TrimStart('-', ' ', '\t').StartsWith("//"))
+                else if (line.StartsWith("-") && line.Contains("[TestMethod]"))
                 {
                     Console.WriteLine($"Deleted test method: {line}");
                     deleted++;
