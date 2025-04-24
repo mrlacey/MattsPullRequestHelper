@@ -68,6 +68,8 @@ namespace MyGithubActionBot.Tests
         [InlineData("- public static void MyMethod2()", true, "MyMethod2")]
         [InlineData("- public async void MyMethod3()", true, "MyMethod3")]
         [InlineData("- public static async MyMethod4()", true, "MyMethod4")]
+        [InlineData("- public List<string> GetStrings(List<dynamic> changedFiles)", true, "GetStrings")]
+        [InlineData("- public static (int Added, int Deleted, int Changed) AnalyzeTestMethods(List<dynamic> changedFiles)", true, "AnalyzeTestMethods")]
         [InlineData("public void MyMethod()", false, "")]
         [InlineData("    void MyMethod()", false, "")]
         [InlineData("    private MyMethod()", false, "")]
