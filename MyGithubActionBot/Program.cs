@@ -22,7 +22,7 @@ public class Program
 
         // Analyze test methods
         var testAnalysis = AnalyzeTestMethods(changedFiles);
-        var testAnalysisMessage = $"Added Tests: {testAnalysis.Added}\nDeleted Tests: {testAnalysis.Deleted}\nChanged Tests: {testAnalysis.Changed}";
+        var testAnalysisMessage = $"Added Tests: {testAnalysis.Added}\nDeleted Tests: {testAnalysis.Deleted}";
         Console.WriteLine(testAnalysisMessage);
 
         // Analyze deleted public methods
@@ -112,21 +112,20 @@ public class Program
         return changedFiles;
     }
 
-    public static (int Added, int Deleted, int Changed) AnalyzeTestMethods(List<dynamic> changedFiles)
+    public static (int Added, int Deleted) AnalyzeTestMethods(List<dynamic> changedFiles)
     {
-        int added = 0, deleted = 0, changed = 0;
+        int added = 0, deleted = 0;
 
         foreach (var file in changedFiles)
         {
             Console.WriteLine($"Analyzing file: {file.filename}");
-            
             foreach (var line in file.patch.ToString().Split('\n'))
             {
                 // TODO: add appropriate tests 
-                // TODO: also ensure that support all test types (inc. for nunit nad xunit too)
+                // TODO: also ensure that support all test types (inc. for nunit and xunit too)
                 if (line.StartsWith("+") && line.Contains("[TestMethod]"))
                 {
-Console.WriteLine($"Added test method: {line}");
+                    Console.WriteLine($"Added test method: {line}");
                     added++;
                 }
                 else if (line.StartsWith("-") && line.Contains("[TestMethod]"))
@@ -134,15 +133,10 @@ Console.WriteLine($"Added test method: {line}");
                     Console.WriteLine($"Deleted test method: {line}");
                     deleted++;
                 }
-                // TODO: work out if/how to track changed tests
-                // else if (line.StartsWith(" ") && line.Contains("[TestMethod]"))
-                // {
-                //     changed++;
-                // }
             }
         }
 
-        return (added, deleted, changed);
+        return (added, deleted);
     }
 
     public static List<string> AnalyzeDeletedPublicMethods(List<dynamic> changedFiles)
