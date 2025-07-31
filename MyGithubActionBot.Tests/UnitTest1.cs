@@ -23,7 +23,12 @@ namespace MyGithubActionBot.Tests
 
             // Assert
             Assert.NotNull(changedFiles);
-            Assert.All(changedFiles, file => Assert.EndsWith(".cs", file));
+            Assert.All(changedFiles, file => 
+            {
+                string filename = file.filename?.ToString() ?? string.Empty;
+                Assert.True(filename.EndsWith(".cs") || filename.EndsWith(".csproj"), 
+                    $"File {filename} should end with .cs or .csproj");
+            });
         }
 
         //[Fact]
@@ -474,6 +479,56 @@ Removed references:
 - OldLibrary (version 1.0.0) [PackageReference]";
 
             Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void AnalyzeTestMethods_ShouldIgnoreNonCsFiles()
+        {
+            // Create mock changed files with both .cs and .csproj files
+            var mockCsFileJson = @"{
+                ""filename"": ""TestClass.cs"",
+                ""patch"": ""@@ -1,4 +1,6 @@\n using System;\n+using Xunit;\n\n public class TestClass\n {\n+    [Fact]\n+    public void NewTest() { }\n }""
+            }";
+
+            var mockCsprojFileJson = @"{
+                ""filename"": ""TestProject.csproj"",
+                ""patch"": ""@@ -10,6 +10,7 @@\n   <ItemGroup>\n     <PackageReference Include=\""LibGit2Sharp\"" Version=\""0.31.0\"" />\n+    <PackageReference Include=\""Microsoft.Extensions.Logging\"" Version=\""8.0.0\"" />\n   </ItemGroup>\n\n </Project>""
+            }";
+
+            var mockCsFile = JsonConvert.DeserializeObject(mockCsFileJson);
+            var mockCsprojFile = JsonConvert.DeserializeObject(mockCsprojFileJson);
+            var changedFiles = new List<dynamic> { mockCsFile!, mockCsprojFile! };
+
+            var result = Program.AnalyzeTestMethods(changedFiles);
+
+            // Should only count tests from .cs files, ignoring .csproj files
+            Assert.Equal(1, result.Added);
+            Assert.Equal(0, result.Deleted);
+        }
+
+        [Fact]
+        public void AnalyzeDeletedPublicMethods_ShouldIgnoreNonCsFiles()
+        {
+            // Create mock changed files with both .cs and .csproj files
+            var mockCsFileJson = @"{
+                ""filename"": ""TestClass.cs"",
+                ""patch"": ""@@ -1,6 +1,4 @@\n using System;\n\n public class TestClass\n {\n-    public void DeletedMethod() { }\n }""
+            }";
+
+            var mockCsprojFileJson = @"{
+                ""filename"": ""TestProject.csproj"",
+                ""patch"": ""@@ -10,7 +10,6 @@\n   <ItemGroup>\n     <PackageReference Include=\""LibGit2Sharp\"" Version=\""0.31.0\"" />\n-    <PackageReference Include=\""Microsoft.Extensions.Logging\"" Version=\""8.0.0\"" />\n   </ItemGroup>\n\n </Project>""
+            }";
+
+            var mockCsFile = JsonConvert.DeserializeObject(mockCsFileJson);
+            var mockCsprojFile = JsonConvert.DeserializeObject(mockCsprojFileJson);
+            var changedFiles = new List<dynamic> { mockCsFile!, mockCsprojFile! };
+
+            var result = Program.AnalyzeDeletedPublicMethods(changedFiles);
+
+            // Should only find deleted methods from .cs files, ignoring .csproj files
+            Assert.Single(result);
+            Assert.Contains("DeletedMethod", result[0]);
         }
     }
 }

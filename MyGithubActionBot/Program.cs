@@ -190,6 +190,11 @@ public class Program
         foreach (var file in changedFiles)
         {
             string filename = file.filename?.ToString() ?? string.Empty;
+            
+            // Only analyze C# files for test methods
+            if (!filename.EndsWith(".cs"))
+                continue;
+                
             Console.WriteLine($"Analyzing file: {filename}");
             
             var patch = file.patch?.ToString() ?? string.Empty; // Handle possible null
@@ -210,6 +215,10 @@ public class Program
         {
             var diff = file.patch?.ToString() ?? string.Empty;
             var filename = file.filename?.ToString() ?? string.Empty;
+
+            // Only analyze C# files for deleted public methods
+            if (!filename.EndsWith(".cs"))
+                continue;
 
             Console.WriteLine($"Analyzing diff for file: {filename}");
 
