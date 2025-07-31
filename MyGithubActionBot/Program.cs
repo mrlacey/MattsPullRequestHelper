@@ -9,29 +9,36 @@ using System.Threading.Tasks;
 using LibGit2Sharp;
 using Newtonsoft.Json;
 
-public class PackageReference
+public class ProjectReference
 {
     public string Name { get; set; } = string.Empty;
     public string Version { get; set; } = string.Empty;
+    public string Type { get; set; } = string.Empty; // PackageReference, ProjectReference, Reference, etc.
 }
 
-public class PackageReferenceChange
+public class ReferenceChange
 {
     public string Name { get; set; } = string.Empty;
     public string? OldVersion { get; set; }
     public string NewVersion { get; set; } = string.Empty;
-    public bool IsNew => string.IsNullOrEmpty(OldVersion);
+    public string Type { get; set; } = string.Empty; // PackageReference, ProjectReference, Reference, etc.
+    public bool IsNew => string.IsNullOrEmpty(OldVersion) && !string.IsNullOrEmpty(NewVersion);
+    public bool IsRemoved => !string.IsNullOrEmpty(OldVersion) && string.IsNullOrEmpty(NewVersion);
+    public bool IsUpdated => !string.IsNullOrEmpty(OldVersion) && !string.IsNullOrEmpty(NewVersion);
 }
 
 public class ReferenceAnalysisResult
 {
-    public List<PackageReferenceChange> Changes { get; set; } = new List<PackageReferenceChange>();
+    public List<ReferenceChange> Changes { get; set; } = new List<ReferenceChange>();
 }
 
 public class Program
 {
     public const string DeletedPublicMethodRegex = @"^\-\s*public\s+(?:(?:static|async|virtual|override|sealed|abstract)\s+)*(?:\w+(?:<[^>]+>)?|\([^)]+\))\s+(\w+)\s*\(";
     public const string PackageReferenceRegex = @"<PackageReference\s+Include=""([^""]+)""\s+Version=""([^""]+)""\s*/?>";
+    public const string ProjectReferenceRegex = @"<ProjectReference\s+Include=""([^""]+)""\s*/?>";
+    public const string FrameworkReferenceRegex = @"<FrameworkReference\s+Include=""([^""]+)""\s*/?>";
+    public const string ReferenceRegex = @"<Reference\s+Include=""([^""]+)""\s*(?:Version=""([^""]*)"")?\s*/?>";
 
     public static async Task Main(string[] args)
     {
@@ -230,7 +237,7 @@ public class Program
     public static ReferenceAnalysisResult AnalyzeProjectReferences(List<dynamic> changedFiles)
     {
         var result = new ReferenceAnalysisResult();
-        var packagesByName = new Dictionary<string, PackageReferenceChange>();
+        var referencesByKey = new Dictionary<string, ReferenceChange>();
 
         foreach (var file in changedFiles)
         {
@@ -249,81 +256,122 @@ public class Program
                 if (line.StartsWith("+") || line.StartsWith("-"))
                 {
                     var trimmedLine = line.Substring(1).Trim();
-                    var match = Regex.Match(trimmedLine, PackageReferenceRegex);
-                    
-                    if (match.Success)
-                    {
-                        var packageName = match.Groups[1].Value;
-                        var version = match.Groups[2].Value;
-                        
-                        if (line.StartsWith("+"))
-                        {
-                            // Package reference added or updated
-                            if (packagesByName.ContainsKey(packageName))
-                            {
-                                // This is an update - we already saw the removal
-                                packagesByName[packageName].NewVersion = version;
-                            }
-                            else
-                            {
-                                // This is a new package
-                                packagesByName[packageName] = new PackageReferenceChange
-                                {
-                                    Name = packageName,
-                                    NewVersion = version
-                                };
-                            }
-                        }
-                        else if (line.StartsWith("-"))
-                        {
-                            // Package reference removed or being updated
-                            if (packagesByName.ContainsKey(packageName))
-                            {
-                                // This is an update - we already saw the addition
-                                packagesByName[packageName].OldVersion = version;
-                            }
-                            else
-                            {
-                                // This might be part of an update, create entry
-                                packagesByName[packageName] = new PackageReferenceChange
-                                {
-                                    Name = packageName,
-                                    OldVersion = version,
-                                    NewVersion = "" // Will be filled if we see the + line
-                                };
-                            }
-                        }
-                    }
+                    ProcessReferenceLine(trimmedLine, line.StartsWith("+"), referencesByKey);
                 }
             }
         }
 
-        // Filter out removals (where we only saw - but no +)
-        result.Changes = packagesByName.Values
-            .Where(change => !string.IsNullOrEmpty(change.NewVersion))
-            .ToList();
-
+        result.Changes = referencesByKey.Values.ToList();
         return result;
+    }
+
+    private static void ProcessReferenceLine(string line, bool isAddition, Dictionary<string, ReferenceChange> referencesByKey)
+    {
+        // Try PackageReference first
+        var packageMatch = Regex.Match(line, PackageReferenceRegex);
+        if (packageMatch.Success)
+        {
+            ProcessReferenceMatch(packageMatch.Groups[1].Value, packageMatch.Groups[2].Value, "PackageReference", isAddition, referencesByKey);
+            return;
+        }
+
+        // Try ProjectReference
+        var projectMatch = Regex.Match(line, ProjectReferenceRegex);
+        if (projectMatch.Success)
+        {
+            ProcessReferenceMatch(projectMatch.Groups[1].Value, "", "ProjectReference", isAddition, referencesByKey);
+            return;
+        }
+
+        // Try FrameworkReference
+        var frameworkMatch = Regex.Match(line, FrameworkReferenceRegex);
+        if (frameworkMatch.Success)
+        {
+            ProcessReferenceMatch(frameworkMatch.Groups[1].Value, "", "FrameworkReference", isAddition, referencesByKey);
+            return;
+        }
+
+        // Try Reference
+        var referenceMatch = Regex.Match(line, ReferenceRegex);
+        if (referenceMatch.Success)
+        {
+            string version = referenceMatch.Groups.Count > 2 ? referenceMatch.Groups[2].Value : "";
+            ProcessReferenceMatch(referenceMatch.Groups[1].Value, version, "Reference", isAddition, referencesByKey);
+            return;
+        }
+    }
+
+    private static void ProcessReferenceMatch(string name, string version, string type, bool isAddition, Dictionary<string, ReferenceChange> referencesByKey)
+    {
+        var key = $"{type}:{name}";
+        
+        // For references without version (ProjectReference, FrameworkReference), use a special marker
+        if (string.IsNullOrEmpty(version) && (type == "ProjectReference" || type == "FrameworkReference"))
+        {
+            version = "[NoVersion]";
+        }
+        
+        if (isAddition)
+        {
+            // Reference added or updated
+            if (referencesByKey.ContainsKey(key))
+            {
+                // This is an update - we already saw the removal
+                referencesByKey[key].NewVersion = version;
+            }
+            else
+            {
+                // This is a new reference
+                referencesByKey[key] = new ReferenceChange
+                {
+                    Name = name,
+                    NewVersion = version,
+                    Type = type
+                };
+            }
+        }
+        else
+        {
+            // Reference removed or being updated
+            if (referencesByKey.ContainsKey(key))
+            {
+                // This is an update - we already saw the addition
+                referencesByKey[key].OldVersion = version;
+            }
+            else
+            {
+                // This is a removal
+                referencesByKey[key] = new ReferenceChange
+                {
+                    Name = name,
+                    OldVersion = version,
+                    NewVersion = "", // Empty indicates removal
+                    Type = type
+                };
+            }
+        }
     }
 
     public static string FormatReferenceAnalysis(ReferenceAnalysisResult analysis)
     {
         if (analysis.Changes.Count == 0)
         {
-            return "Project References:\n* no new references added *";
+            return "Project References:\n* no reference changes detected *";
         }
 
         var lines = new List<string> { "Project References:" };
 
         var newReferences = analysis.Changes.Where(c => c.IsNew).ToList();
-        var updatedReferences = analysis.Changes.Where(c => !c.IsNew).ToList();
+        var updatedReferences = analysis.Changes.Where(c => c.IsUpdated).ToList();
+        var removedReferences = analysis.Changes.Where(c => c.IsRemoved).ToList();
 
         if (newReferences.Count > 0)
         {
             lines.Add("New references:");
             foreach (var reference in newReferences)
             {
-                lines.Add($"- {reference.Name} (version {reference.NewVersion})");
+                var version = !string.IsNullOrEmpty(reference.NewVersion) && reference.NewVersion != "[NoVersion]" ? $" (version {reference.NewVersion})" : "";
+                lines.Add($"- {reference.Name}{version} [{reference.Type}]");
             }
         }
 
@@ -334,14 +382,28 @@ public class Program
             lines.Add("Updated references:");
             foreach (var reference in updatedReferences)
             {
-                lines.Add($"- {reference.Name} (version {reference.OldVersion} -> {reference.NewVersion})");
+                var oldVer = reference.OldVersion == "[NoVersion]" ? "no version" : reference.OldVersion;
+                var newVer = reference.NewVersion == "[NoVersion]" ? "no version" : reference.NewVersion;
+                lines.Add($"- {reference.Name} (version {oldVer} -> {newVer}) [{reference.Type}]");
             }
         }
 
-        if (newReferences.Count == 0 && updatedReferences.Count == 0)
+        if (removedReferences.Count > 0)
+        {
+            if (newReferences.Count > 0 || updatedReferences.Count > 0)
+                lines.Add("");
+            lines.Add("Removed references:");
+            foreach (var reference in removedReferences)
+            {
+                var version = !string.IsNullOrEmpty(reference.OldVersion) && reference.OldVersion != "[NoVersion]" ? $" (version {reference.OldVersion})" : "";
+                lines.Add($"- {reference.Name}{version} [{reference.Type}]");
+            }
+        }
+
+        if (newReferences.Count == 0 && updatedReferences.Count == 0 && removedReferences.Count == 0)
         {
             lines.Clear();
-            lines.Add("Project References:\n* no new references added *");
+            lines.Add("Project References:\n* no reference changes detected *");
         }
 
         return string.Join("\n", lines);
