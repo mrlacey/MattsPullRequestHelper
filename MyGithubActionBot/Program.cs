@@ -9,9 +9,29 @@ using System.Threading.Tasks;
 using LibGit2Sharp;
 using Newtonsoft.Json;
 
+public class PackageReference
+{
+    public string Name { get; set; } = string.Empty;
+    public string Version { get; set; } = string.Empty;
+}
+
+public class PackageReferenceChange
+{
+    public string Name { get; set; } = string.Empty;
+    public string? OldVersion { get; set; }
+    public string NewVersion { get; set; } = string.Empty;
+    public bool IsNew => string.IsNullOrEmpty(OldVersion);
+}
+
+public class ReferenceAnalysisResult
+{
+    public List<PackageReferenceChange> Changes { get; set; } = new List<PackageReferenceChange>();
+}
+
 public class Program
 {
     public const string DeletedPublicMethodRegex = @"^\-\s*public\s+(?:(?:static|async|virtual|override|sealed|abstract)\s+)*(?:\w+(?:<[^>]+>)?|\([^)]+\))\s+(\w+)\s*\(";
+    public const string PackageReferenceRegex = @"<PackageReference\s+Include=""([^""]+)""\s+Version=""([^""]+)""\s*/?>";
 
     public static async Task Main(string[] args)
     {
@@ -30,8 +50,13 @@ public class Program
         var deletedMethodsMessage = "Deleted Public Methods:\n" + string.Join("\n", deletedPublicMethods);
         Console.WriteLine(deletedMethodsMessage);
 
+        // Analyze project references
+        var referenceAnalysis = AnalyzeProjectReferences(changedFiles);
+        var referenceAnalysisMessage = FormatReferenceAnalysis(referenceAnalysis);
+        Console.WriteLine(referenceAnalysisMessage);
+
         // Combine messages
-        var fullMessage = $"{testAnalysisMessage}\n\n{deletedMethodsMessage}";
+        var fullMessage = $"{testAnalysisMessage}\n\n{deletedMethodsMessage}\n\n{referenceAnalysisMessage}";
 
         // Post to PR conversation
         await PostToPullRequest(fullMessage);
@@ -83,7 +108,7 @@ public class Program
                                     string fileName = file.filename?.ToString() ?? string.Empty;
                                     Console.WriteLine($"Changed file: {fileName}");
 
-                                    if (fileName.EndsWith(".cs"))
+                                    if (fileName.EndsWith(".cs") || fileName.EndsWith(".csproj"))
                                     {
                                         changedFiles.Add(file);
                                     }
@@ -200,6 +225,126 @@ public class Program
         }
 
         return deletedMethods;
+    }
+
+    public static ReferenceAnalysisResult AnalyzeProjectReferences(List<dynamic> changedFiles)
+    {
+        var result = new ReferenceAnalysisResult();
+        var packagesByName = new Dictionary<string, PackageReferenceChange>();
+
+        foreach (var file in changedFiles)
+        {
+            string filename = file.filename?.ToString() ?? string.Empty;
+            
+            if (!filename.EndsWith(".csproj"))
+                continue;
+
+            Console.WriteLine($"Analyzing project references in file: {filename}");
+            
+            var patch = file.patch?.ToString() ?? string.Empty;
+            var lines = patch.Split('\n');
+
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("+") || line.StartsWith("-"))
+                {
+                    var trimmedLine = line.Substring(1).Trim();
+                    var match = Regex.Match(trimmedLine, PackageReferenceRegex);
+                    
+                    if (match.Success)
+                    {
+                        var packageName = match.Groups[1].Value;
+                        var version = match.Groups[2].Value;
+                        
+                        if (line.StartsWith("+"))
+                        {
+                            // Package reference added or updated
+                            if (packagesByName.ContainsKey(packageName))
+                            {
+                                // This is an update - we already saw the removal
+                                packagesByName[packageName].NewVersion = version;
+                            }
+                            else
+                            {
+                                // This is a new package
+                                packagesByName[packageName] = new PackageReferenceChange
+                                {
+                                    Name = packageName,
+                                    NewVersion = version
+                                };
+                            }
+                        }
+                        else if (line.StartsWith("-"))
+                        {
+                            // Package reference removed or being updated
+                            if (packagesByName.ContainsKey(packageName))
+                            {
+                                // This is an update - we already saw the addition
+                                packagesByName[packageName].OldVersion = version;
+                            }
+                            else
+                            {
+                                // This might be part of an update, create entry
+                                packagesByName[packageName] = new PackageReferenceChange
+                                {
+                                    Name = packageName,
+                                    OldVersion = version,
+                                    NewVersion = "" // Will be filled if we see the + line
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Filter out removals (where we only saw - but no +)
+        result.Changes = packagesByName.Values
+            .Where(change => !string.IsNullOrEmpty(change.NewVersion))
+            .ToList();
+
+        return result;
+    }
+
+    public static string FormatReferenceAnalysis(ReferenceAnalysisResult analysis)
+    {
+        if (analysis.Changes.Count == 0)
+        {
+            return "Project References:\n* no new references added *";
+        }
+
+        var lines = new List<string> { "Project References:" };
+
+        var newReferences = analysis.Changes.Where(c => c.IsNew).ToList();
+        var updatedReferences = analysis.Changes.Where(c => !c.IsNew).ToList();
+
+        if (newReferences.Count > 0)
+        {
+            lines.Add("New references:");
+            foreach (var reference in newReferences)
+            {
+                lines.Add($"- {reference.Name} (version {reference.NewVersion})");
+            }
+        }
+
+        if (updatedReferences.Count > 0)
+        {
+            if (newReferences.Count > 0)
+                lines.Add("");
+            lines.Add("Updated references:");
+            foreach (var reference in updatedReferences)
+            {
+                lines.Add($"- {reference.Name} (version {reference.OldVersion} -> {reference.NewVersion})");
+            }
+        }
+
+        if (newReferences.Count == 0 && updatedReferences.Count == 0)
+        {
+            lines.Clear();
+            lines.Add("Project References:\n* no new references added *");
+        }
+
+        return string.Join("\n", lines);
     }
 
     public static async Task PostToPullRequest(string message)

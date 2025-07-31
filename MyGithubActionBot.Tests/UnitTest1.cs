@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace MyGithubActionBot.Tests
@@ -129,6 +131,144 @@ namespace MyGithubActionBot.Tests
 
             Assert.Equal(linesAddingMethods.Length, result.Item1); // Added
             Assert.Equal(linesDeletingMethods.Length, result.Item2); // Deleted
+        }
+
+        [Theory]
+        [InlineData(@"<PackageReference Include=""Newtonsoft.Json"" Version=""13.0.3"" />", true, "Newtonsoft.Json", "13.0.3")]
+        [InlineData(@"<PackageReference Include=""Microsoft.Extensions.Logging"" Version=""8.0.0"" />", true, "Microsoft.Extensions.Logging", "8.0.0")]
+        [InlineData(@"<PackageReference Include=""xunit"" Version=""2.9.2"" />", true, "xunit", "2.9.2")]
+        [InlineData(@"<PackageReference Include=""LibGit2Sharp"" Version=""0.31.0""/>", true, "LibGit2Sharp", "0.31.0")] // Without space before />
+        [InlineData(@"<ProjectReference Include=""..\Other\Other.csproj"" />", false, "", "")]
+        [InlineData(@"<Reference Include=""System"" />", false, "", "")]
+        public void TestPackageReferenceRegex_ValidValues(string input, bool isMatchExpected, string expectedPackageName, string expectedVersion)
+        {
+            var regex = new Regex(Program.PackageReferenceRegex);
+
+            var match = regex.Match(input);
+
+            Assert.Equal(isMatchExpected, match.Success);
+            if (isMatchExpected)
+            {
+                Assert.Equal(expectedPackageName, match.Groups[1].Value);
+                Assert.Equal(expectedVersion, match.Groups[2].Value);
+            }
+        }
+
+        [Fact]
+        public void AnalyzeProjectReferences_ShouldDetectNewPackageReferences()
+        {
+            // Create mock changed file with new package reference
+            var mockFileJson = @"{
+                ""filename"": ""TestProject.csproj"",
+                ""patch"": ""@@ -10,6 +10,7 @@\n   <ItemGroup>\n     <PackageReference Include=\""LibGit2Sharp\"" Version=\""0.31.0\"" />\n     <PackageReference Include=\""Newtonsoft.Json\"" Version=\""13.0.3\"" />\n+    <PackageReference Include=\""Microsoft.Extensions.Logging\"" Version=\""8.0.0\"" />\n   </ItemGroup>\n\n </Project>""
+            }";
+
+            var mockFile = JsonConvert.DeserializeObject(mockFileJson);
+            var changedFiles = new List<dynamic> { mockFile };
+
+            var result = Program.AnalyzeProjectReferences(changedFiles);
+
+            Assert.Single(result.Changes);
+            Assert.Equal("Microsoft.Extensions.Logging", result.Changes[0].Name);
+            Assert.Equal("8.0.0", result.Changes[0].NewVersion);
+            Assert.True(result.Changes[0].IsNew);
+        }
+
+        [Fact]
+        public void AnalyzeProjectReferences_ShouldDetectUpdatedPackageReferences()
+        {
+            // Create mock changed file with updated package reference
+            var mockFileJson = @"{
+                ""filename"": ""TestProject.csproj"",
+                ""patch"": ""@@ -10,7 +10,7 @@\n   <ItemGroup>\n     <PackageReference Include=\""LibGit2Sharp\"" Version=\""0.31.0\"" />\n-    <PackageReference Include=\""Newtonsoft.Json\"" Version=\""13.0.2\"" />\n+    <PackageReference Include=\""Newtonsoft.Json\"" Version=\""13.0.3\"" />\n   </ItemGroup>\n\n </Project>""
+            }";
+
+            var mockFile = JsonConvert.DeserializeObject(mockFileJson);
+            var changedFiles = new List<dynamic> { mockFile };
+
+            var result = Program.AnalyzeProjectReferences(changedFiles);
+
+            Assert.Single(result.Changes);
+            Assert.Equal("Newtonsoft.Json", result.Changes[0].Name);
+            Assert.Equal("13.0.2", result.Changes[0].OldVersion);
+            Assert.Equal("13.0.3", result.Changes[0].NewVersion);
+            Assert.False(result.Changes[0].IsNew);
+        }
+
+        [Fact]
+        public void AnalyzeProjectReferences_ShouldIgnoreNonCsprojFiles()
+        {
+            // Create mock changed file that's not a .csproj file
+            var mockFileJson = @"{
+                ""filename"": ""TestClass.cs"",
+                ""patch"": ""@@ -1,4 +1,5 @@\n using System;\n+using Microsoft.Extensions.Logging;\n\n public class TestClass\n {""
+            }";
+
+            var mockFile = JsonConvert.DeserializeObject(mockFileJson);
+            var changedFiles = new List<dynamic> { mockFile };
+
+            var result = Program.AnalyzeProjectReferences(changedFiles);
+
+            Assert.Empty(result.Changes);
+        }
+
+        [Fact]
+        public void FormatReferenceAnalysis_ShouldReturnNoReferencesMessage_WhenEmpty()
+        {
+            var analysis = new ReferenceAnalysisResult();
+
+            var result = Program.FormatReferenceAnalysis(analysis);
+
+            Assert.Equal("Project References:\n* no new references added *", result);
+        }
+
+        [Fact]
+        public void FormatReferenceAnalysis_ShouldFormatNewReferences()
+        {
+            var analysis = new ReferenceAnalysisResult
+            {
+                Changes = new List<PackageReferenceChange>
+                {
+                    new PackageReferenceChange
+                    {
+                        Name = "Microsoft.Extensions.Logging",
+                        NewVersion = "8.0.0"
+                    }
+                }
+            };
+
+            var result = Program.FormatReferenceAnalysis(analysis);
+
+            var expected = @"Project References:
+New references:
+- Microsoft.Extensions.Logging (version 8.0.0)";
+
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void FormatReferenceAnalysis_ShouldFormatUpdatedReferences()
+        {
+            var analysis = new ReferenceAnalysisResult
+            {
+                Changes = new List<PackageReferenceChange>
+                {
+                    new PackageReferenceChange
+                    {
+                        Name = "Newtonsoft.Json",
+                        OldVersion = "13.0.2",
+                        NewVersion = "13.0.3"
+                    }
+                }
+            };
+
+            var result = Program.FormatReferenceAnalysis(analysis);
+
+            var expected = @"Project References:
+Updated references:
+- Newtonsoft.Json (version 13.0.2 -> 13.0.3)";
+
+            Assert.Equal(expected, result);
         }
     }
 }
