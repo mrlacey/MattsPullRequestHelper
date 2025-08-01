@@ -8,36 +8,36 @@ using Xunit;
 
 namespace MyGithubActionBot.Tests
 {
-    public class TestChanges
-    {
-        [Fact]
-        public void AnalyzeTestLines_ShouldCorrectlyCountAddedAndDeletedTests()
-        {
-            string[] linesAddingMethods = [
-            
-                "+ [TestMethod] public void AddedTest() { }",
-                "+ [TestMethod]",
-                "+\t[TestMethod]",
-            ];
-            string[] linesDeletingMethods = [
-            
-                "- [TestMethod] public void DeletedTest() { }",
-                "- [TestMethod]",
-            ];
-            string[] miscOtherLine = [
-            
-                "+ // [TestMethod] public void CommentedOutAddedTest() { }",
-                "- // [TestMethod] public void CommentedOutDeletedTest() { }",
-                "+ public void NonTestMethod() { }",
-                "- public void AnotherNonTestMethod() { }"
-            ];
+	public class TestChanges
+	{
+		[Fact]
+		public void AnalyzeTestLines_ShouldCorrectlyCountAddedAndDeletedTests()
+		{
+			string[] linesAddingMethods = [
 
-            var allLines = linesAddingMethods.Concat(linesDeletingMethods).Concat(miscOtherLine).ToArray();
+				"+ [TestMethod] public void AddedTest() { }",
+				"+ [TestMethod]",
+				"+\t[TestMethod]",
+			];
+			string[] linesDeletingMethods = [
 
-            var result = Program.AnalyzeTestLines(allLines);
+				"- [TestMethod] public void DeletedTest() { }",
+				"- [TestMethod]",
+			];
+			string[] miscOtherLine = [
 
-            Assert.Equal(linesAddingMethods.Length, result.Item1); // Added
-            Assert.Equal(linesDeletingMethods.Length, result.Item2); // Deleted
-        }
-    }
+				"+ // [TestMethod] public void CommentedOutAddedTest() { }",
+				"- // [TestMethod] public void CommentedOutDeletedTest() { }",
+				"+ public void NonTestMethod() { }",
+				"- public void AnotherNonTestMethod() { }"
+			];
+
+			var allLines = linesAddingMethods.Concat(linesDeletingMethods).Concat(miscOtherLine).ToArray();
+
+			var result = Program.AnalyzeTestLines(allLines);
+
+			Assert.Equal(linesAddingMethods.Length, result.Item1); // Added
+			Assert.Equal(linesDeletingMethods.Length, result.Item2); // Deleted
+		}
+	}
 }
