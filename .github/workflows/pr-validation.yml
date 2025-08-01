@@ -1,0 +1,82 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Check code formatting
+      run: dotnet format --verify-no-changes --verbosity diagnostic
+      
+    - name: Build solution (Debug)
+      run: dotnet build --configuration Debug --no-restore
+      
+    - name: Build solution (Release)
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Run tests with detailed output
+      run: dotnet test --configuration Release --no-build --verbosity normal --logger "console;verbosity=detailed"
+      
+    - name: Check for warnings
+      run: |
+        echo "Checking for build warnings..."
+        dotnet build --configuration Release --verbosity normal 2>&1 | tee build.log
+        if grep -q "warning" build.log; then
+          echo "❌ Build warnings found:"
+          grep "warning" build.log
+          exit 1
+        else
+          echo "✅ No build warnings found"
+        fi
+
+  security-analysis:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Check for vulnerable packages
+      run: |
+        echo "Checking for vulnerable packages..."
+        if dotnet list package --vulnerable --include-transitive | grep -E "(Critical|High|Moderate|Low)"; then
+          echo "❌ Vulnerable packages found"
+          dotnet list package --vulnerable --include-transitive
+          exit 1
+        else
+          echo "✅ No vulnerable packages found"
+        fi
+        
+    - name: Check for deprecated packages
+      run: |
+        echo "Checking for deprecated packages..."
+        if dotnet list package --deprecated | grep -E "Deprecated"; then
+          echo "⚠️ Deprecated packages found:"
+          dotnet list package --deprecated
+          echo "Consider updating these packages"
+        else
+          echo "✅ No deprecated packages found"
+        fi
