@@ -221,7 +221,7 @@ namespace MyGithubActionBot.Tests
 
             var result = Program.FormatReferenceAnalysis(analysis);
 
-            Assert.Equal("Project References:\n* no reference changes detected *", result);
+            Assert.Equal($"Project References:{Environment.NewLine}* no reference changes detected *", result);
         }
 
         [Fact]

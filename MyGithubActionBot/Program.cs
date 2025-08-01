@@ -365,7 +365,7 @@ public class Program
     {
         if (analysis.Changes.Count == 0)
         {
-            return "Project References:\n* no reference changes detected *";
+            return $"Project References:{Environment.NewLine}* no reference changes detected *";
         }
 
         var lines = new List<string> { "Project References:" };
@@ -412,10 +412,10 @@ public class Program
         if (newReferences.Count == 0 && updatedReferences.Count == 0 && removedReferences.Count == 0)
         {
             lines.Clear();
-            lines.Add("Project References:\n* no reference changes detected *");
+            lines.Add($"Project References:{Environment.NewLine}* no reference changes detected *");
         }
 
-        return string.Join("\n", lines);
+        return string.Join(Environment.NewLine, lines);
     }
 
     public static async Task PostToPullRequest(string message)
