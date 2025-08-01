@@ -9,5 +9,6 @@ Current functionality:
 - Report the number of tests added. (If low or none, may need to ask why or it could indicate the PR isn't ready for review.)
 - Report the number of tests deleted. (If there are any, it should raise questions.)
 - Report any public methods that have been removed. (Depending on the project this may need to be documented or avoided.)
+- Report any changes in project references and dependencies.
 
 Written in C# and intended for reviewing C# files.
