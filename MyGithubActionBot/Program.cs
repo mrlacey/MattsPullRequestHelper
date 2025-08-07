@@ -106,6 +106,7 @@ public class Program
 						else
 						{
 							Console.WriteLine($"Failed to fetch pull request files. Status: {response.StatusCode}, Message: {response.Content.ReadAsStringAsync().Result}");
+							Environment.Exit(2); // This will cause the GitHub Action to fail
 						}
 					}
 				}
@@ -432,6 +433,7 @@ public class Program
 			else
 			{
 				Console.WriteLine($"Failed to post to PR conversation. Status: {response.StatusCode}, Message: {await response.Content.ReadAsStringAsync()}");
+				Environment.Exit(1); // This will cause the GitHub Action to fail
 			}
 		}
 	}

@@ -21,4 +21,4 @@ jobs:
       - name: Use MattsPullRequestHelper
         uses: mrlacey/MattsPullRequestHelper@main
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.PR_COMMENT_TOKEN }}
