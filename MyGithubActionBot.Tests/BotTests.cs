@@ -10,26 +10,26 @@ namespace MyGithubActionBot.Tests
 {
 	public class BotTests
 	{
-		// TODO: Review this test as it currently seems pointless
-		[Fact]
-		public void Test_GetChangedFiles_ReturnsExpectedFiles()
-		{
-			// Arrange
-			Environment.SetEnvironmentVariable("GITHUB_WORKSPACE", "path/to/repo");
-			// Simulate repository setup and commits here if needed
+		// TODO: Review this test as it currently seems pointless - and getting changed files requires permissions the test won't have.
+		// // [Fact]
+		// // public void Test_GetChangedFiles_ReturnsExpectedFiles()
+		// // {
+		// // 	// Arrange
+		// // 	Environment.SetEnvironmentVariable("GITHUB_WORKSPACE", "path/to/repo");
+		// // 	// Simulate repository setup and commits here if needed
 
-			// Act
-			var changedFiles = Program.GetChangedFiles();
+		// // 	// Act
+		// // 	var changedFiles = Program.GetChangedFiles();
 
-			// Assert
-			Assert.NotNull(changedFiles);
-			Assert.All(changedFiles, file =>
-			{
-				string filename = file.filename?.ToString() ?? string.Empty;
-				Assert.True(filename.EndsWith(".cs") || filename.EndsWith(".csproj"),
-					$"File {filename} should end with .cs or .csproj");
-			});
-		}
+		// // 	// Assert
+		// // 	Assert.NotNull(changedFiles);
+		// // 	Assert.All(changedFiles, file =>
+		// // 	{
+		// // 		string filename = file.filename?.ToString() ?? string.Empty;
+		// // 		Assert.True(filename.EndsWith(".cs") || filename.EndsWith(".csproj"),
+		// // 			$"File {filename} should end with .cs or .csproj");
+		// // 	});
+		// // }
 
 		//[Fact]
 		// public void Test_AnalyzeTestMethods_CorrectlyCountsTests()
