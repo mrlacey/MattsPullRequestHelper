@@ -452,9 +452,4 @@ public class Program
 	{
 		// Placeholder for testing deleting public methods
 	}
-
-	public static void PlaceholderMethodD()
-	{
-		// Placeholder for testing deleting public methods
-	}
 }
