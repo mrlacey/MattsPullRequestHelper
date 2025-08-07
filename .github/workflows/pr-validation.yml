@@ -33,6 +33,7 @@ jobs:
       run: dotnet test --configuration Release --no-build --verbosity normal --logger "console;verbosity=detailed"
       
     - name: Check for warnings
+      shell: bash
       run: |
         echo "Checking for build warnings..."
         dotnet build --configuration Release --verbosity normal 2>&1 | tee build.log
