@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MyGithubActionBot\MyGithubActionBot.csproj" />
+    <ProjectReference Include="..\PullRequestHelper.Core\PullRequestHelper.Core.csproj" />
   </ItemGroup>
 
 </Project>
