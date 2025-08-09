@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -184,7 +184,7 @@ public class Program
 			if (repoParts.Length != 2)
 			{
 				Console.WriteLine($"Invalid repository format: {repository}");
-				Environment.Exit(1);
+				Environment.Exit(3);
 				return;
 			}
 
