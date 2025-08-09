@@ -16,6 +16,11 @@ public class GitHubService
 
 			var contentBody = $"{{\"body\": \"<b>PullRequestHelper:</b><br /><br />{message.Replace("\n", "<br />")}\"}}";
 
+			Console.WriteLine($"Posting to PR conversation: {apiUrl}");
+			Console.WriteLine("Content:");
+			Console.WriteLine(contentBody);
+			Console.WriteLine();
+
 			var content = new StringContent(contentBody, Encoding.UTF8, "application/json");
 
 			var response = await client.PostAsync(apiUrl, content);
