@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
+using PullRequestHelper.Core.Models;
 using Xunit;
 
 namespace MyGithubActionBot.Tests
@@ -221,7 +222,7 @@ namespace MyGithubActionBot.Tests
 
 			var result = Program.FormatReferenceAnalysis(analysis);
 
-			Assert.Equal($"Project References:{Environment.NewLine}* no reference changes detected *", result);
+			Assert.Equal($"References:{Environment.NewLine}* no reference changes detected *", result);
 		}
 
 		[Fact]
@@ -242,7 +243,7 @@ namespace MyGithubActionBot.Tests
 
 			var result = Program.FormatReferenceAnalysis(analysis);
 
-			var expected = @"Project References:
+			var expected = @"Reference Changes:
 New references:
 - Microsoft.Extensions.Logging (version 8.0.0) [PackageReference]";
 
@@ -268,7 +269,7 @@ New references:
 
 			var result = Program.FormatReferenceAnalysis(analysis);
 
-			var expected = @"Project References:
+			var expected = @"Reference Changes:
 Updated references:
 - Newtonsoft.Json (version 13.0.2 -> 13.0.3) [PackageReference]";
 
@@ -294,7 +295,7 @@ Updated references:
 
 			var result = Program.FormatReferenceAnalysis(analysis);
 
-			var expected = @"Project References:
+			var expected = @"Reference Changes:
 Removed references:
 - Newtonsoft.Json (version 13.0.3) [PackageReference]";
 
@@ -339,7 +340,7 @@ Removed references:
 
 			var result = Program.FormatReferenceAnalysis(analysis);
 
-			var expected = @"Project References:
+			var expected = @"Reference Changes:
 New references:
 - Microsoft.Extensions.Logging (version 8.0.0) [PackageReference]
 - ..\OtherProject\OtherProject.csproj [ProjectReference]
