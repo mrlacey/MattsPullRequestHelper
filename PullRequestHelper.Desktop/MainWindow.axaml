@@ -11,18 +11,12 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Title -->
-        <TextBlock Grid.Row="0" Text="Pull Request Helper" 
-                   FontSize="24" FontWeight="Bold" 
-                   HorizontalAlignment="Center" Margin="0,0,0,20"/>
-
         <!-- PR URL Input -->
-        <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0,0,0,15">
+        <StackPanel Grid.Row="0" Orientation="Vertical" Margin="0,0,0,15">
             <TextBlock Text="GitHub Pull Request URL:" FontWeight="SemiBold" Margin="0,0,0,5"/>
             <TextBox Name="PrUrlTextBox" 
                      Watermark="https://github.com/owner/repo/pull/123"
@@ -30,7 +24,7 @@
         </StackPanel>
 
         <!-- Authentication Status -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,15">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,15">
             <TextBlock Name="AuthStatusText" Text="Authentication: Not logged in" 
                        VerticalAlignment="Center" Margin="0,0,10,0"/>
             <Button Name="AuthButton" Content="Login to GitHub" 
@@ -38,7 +32,7 @@
         </StackPanel>
 
         <!-- Analysis Output -->
-        <Border Grid.Row="3" BorderBrush="Gray" BorderThickness="1" 
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1" 
                 CornerRadius="5" Padding="10" Margin="0,0,0,15">
             <ScrollViewer>
                 <TextBox Name="OutputTextBox" 
@@ -54,7 +48,7 @@
         </Border>
 
         <!-- Action Buttons -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" 
+        <StackPanel Grid.Row="3" Orientation="Horizontal" 
                     HorizontalAlignment="Center" Spacing="10">
             <Button Name="AnalyzeButton" Content="Analyze PR" 
                     Click="OnAnalyzeButtonClick" 

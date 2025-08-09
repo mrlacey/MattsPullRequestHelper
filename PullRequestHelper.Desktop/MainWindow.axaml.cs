@@ -13,6 +13,7 @@ namespace PullRequestHelper.Desktop
 	{
 		private readonly PullRequestAnalyzer _analyzer;
 		private readonly TokenStorage _tokenStorage;
+		private readonly GitHubOAuthService _oauthService;
 		private string? _githubToken;
 		
 		public MainWindow()
@@ -20,6 +21,7 @@ namespace PullRequestHelper.Desktop
 			InitializeComponent();
 			_analyzer = new PullRequestAnalyzer();
 			_tokenStorage = new TokenStorage();
+			_oauthService = new GitHubOAuthService();
 			
 			// Try to load saved token
 			LoadSavedToken();
@@ -78,82 +80,75 @@ namespace PullRequestHelper.Desktop
 			}
 			else
 			{
-				// Login - for now, show a simple input dialog
-				// TODO: Implement proper OAuth flow
-				await ShowTokenInputDialog();
+				// Login using OAuth
+				await AuthenticateWithOAuth();
 			}
 		}
 
-		private async Task ShowTokenInputDialog()
+		private async Task AuthenticateWithOAuth()
 		{
-			var tokenDialog = new Window
+			try
 			{
-				Title = "GitHub Personal Access Token",
-				Width = 500,
-				Height = 200,
-				WindowStartupLocation = WindowStartupLocation.CenterOwner
-			};
-
-			var stackPanel = new StackPanel { Margin = new Avalonia.Thickness(20) };
-			
-			stackPanel.Children.Add(new TextBlock 
-			{ 
-				Text = "Enter your GitHub Personal Access Token:",
-				Margin = new Avalonia.Thickness(0, 0, 0, 10)
-			});
-			
-			var tokenTextBox = new TextBox 
-			{ 
-				Watermark = "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-				Margin = new Avalonia.Thickness(0, 0, 0, 15),
-				PasswordChar = '*'
-			};
-			stackPanel.Children.Add(tokenTextBox);
-
-			var buttonPanel = new StackPanel 
-			{ 
-				Orientation = Avalonia.Layout.Orientation.Horizontal,
-				HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Right,
-				Spacing = 10
-			};
-
-			var okButton = new Button { Content = "OK", Padding = new Avalonia.Thickness(15, 5) };
-			var cancelButton = new Button { Content = "Cancel", Padding = new Avalonia.Thickness(15, 5) };
-
-			buttonPanel.Children.Add(okButton);
-			buttonPanel.Children.Add(cancelButton);
-			stackPanel.Children.Add(buttonPanel);
-
-			tokenDialog.Content = stackPanel;
-
-			bool? result = null;
-			okButton.Click += (s, e) => { result = true; tokenDialog.Close(); };
-			cancelButton.Click += (s, e) => { result = false; tokenDialog.Close(); };
-
-			await tokenDialog.ShowDialog(this);
-
-			if (result == true && !string.IsNullOrWhiteSpace(tokenTextBox.Text))
-			{
-				_githubToken = tokenTextBox.Text.Trim();
-				
-				// Save token securely
-				try
+				if (OutputTextBox != null)
 				{
-					_tokenStorage.SaveToken(_githubToken);
-					UpdateAuthenticationStatus(true);
-					if (OutputTextBox != null)
+					OutputTextBox.Text = "Opening browser for GitHub authentication...";
+				}
+				
+				if (AuthButton != null)
+				{
+					AuthButton.IsEnabled = false;
+					AuthButton.Content = "Authenticating...";
+				}
+				
+				var accessToken = await _oauthService.AuthenticateAsync();
+				
+				if (!string.IsNullOrEmpty(accessToken))
+				{
+					_githubToken = accessToken;
+					
+					// Save token securely
+					try
 					{
-						OutputTextBox.Text = "Authenticated successfully. Enter a PR URL and click 'Analyze PR' to get started.";
+						_tokenStorage.SaveToken(_githubToken);
+						UpdateAuthenticationStatus(true);
+						if (OutputTextBox != null)
+						{
+							OutputTextBox.Text = "Authenticated successfully via OAuth! Enter a PR URL and click 'Analyze PR' to get started.";
+						}
+					}
+					catch (Exception ex)
+					{
+						if (OutputTextBox != null)
+						{
+							OutputTextBox.Text = $"Authentication successful but failed to save token: {ex.Message}";
+						}
+						_githubToken = null;
+						UpdateAuthenticationStatus(false);
 					}
 				}
-				catch (Exception ex)
+				else
 				{
 					if (OutputTextBox != null)
 					{
-						OutputTextBox.Text = $"Error saving token: {ex.Message}";
+						OutputTextBox.Text = "Authentication failed or was cancelled. Please try again.";
 					}
-					_githubToken = null;
 					UpdateAuthenticationStatus(false);
+				}
+			}
+			catch (Exception ex)
+			{
+				if (OutputTextBox != null)
+				{
+					OutputTextBox.Text = $"OAuth authentication error: {ex.Message}";
+				}
+				UpdateAuthenticationStatus(false);
+			}
+			finally
+			{
+				if (AuthButton != null)
+				{
+					AuthButton.IsEnabled = true;
+					AuthButton.Content = _githubToken != null ? "Logout" : "Login to GitHub";
 				}
 			}
 		}
