@@ -1,8 +1,8 @@
-using System;
+﻿using System;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using PullRequestHelper.Core;
 using PullRequestHelper.Desktop.Services;
@@ -87,53 +87,36 @@ namespace PullRequestHelper.Desktop
 
 		private async Task AuthenticateWithOAuth()
 		{
+			var oauthService = new GitHubOAuthService();
+			var callbackListener = new OAuthCallbackListener();
+
 			try
 			{
-				if (OutputTextBox != null)
+				AuthButton.IsEnabled = false;
+				OutputTextBox.Text = "Starting authentication...";
+
+				var callbackTask = callbackListener.WaitForCallback();
+
+				var authUrl = oauthService.GetAuthorizationUrl();
+				Process.Start(new ProcessStartInfo(authUrl) { UseShellExecute = true });
+
+				OutputTextBox.Text = "Waiting for GitHub authorization...";
+
+				var (code, state) = await callbackTask;
+
+				if (!oauthService.ValidateState(state))
 				{
-					OutputTextBox.Text = "Opening browser for GitHub authentication...";
+					throw new InvalidOperationException("Invalid state parameter - possible CSRF attack");
 				}
 
-				if (AuthButton != null)
-				{
-					AuthButton.IsEnabled = false;
-					AuthButton.Content = "Authenticating...";
-				}
+				OutputTextBox.Text = "Exchanging code for token...";
+				var token = await oauthService.ExchangeCodeForToken(code);
 
-				var accessToken = await _oauthService.AuthenticateAsync();
+				_tokenStorage.SaveToken(token);
 
-				if (!string.IsNullOrEmpty(accessToken))
-				{
-					_githubToken = accessToken;
-
-					// Save token securely
-					try
-					{
-						_tokenStorage.SaveToken(_githubToken);
-						UpdateAuthenticationStatus(true);
-						if (OutputTextBox != null)
-						{
-							OutputTextBox.Text = "Authenticated successfully via OAuth! Enter a PR URL and click 'Analyze PR' to get started.";
-						}
-					}
-					catch (Exception ex)
-					{
-						if (OutputTextBox != null)
-						{
-							OutputTextBox.Text = $"Authentication successful but failed to save token: {ex.Message}";
-						}
-						_githubToken = null;
-						UpdateAuthenticationStatus(false);
-					}
-				}
-				else
-				{
-					if (OutputTextBox != null)
-					{
-						OutputTextBox.Text = "Authentication failed or was cancelled. Please try again.";
-					}
-					UpdateAuthenticationStatus(false);
-				}
+				//OutputTextBox.Text = "Successfully authenticated!";
+				//await LoadUserInfo(token);
+				UpdateAuthenticationStatus(true);
 			}
 			catch (Exception ex)
 			{
@@ -145,12 +128,74 @@ namespace PullRequestHelper.Desktop
 			}
 			finally
 			{
-				if (AuthButton != null)
-				{
-					AuthButton.IsEnabled = true;
-					AuthButton.Content = _githubToken != null ? "Logout" : "Login to GitHub";
-				}
+				callbackListener.Stop();
+				UpdateAuthenticationStatus(_githubToken != null);
 			}
+
+			//try
+			//{
+			//	if (OutputTextBox != null)
+			//	{
+			//		OutputTextBox.Text = "Opening browser for GitHub authentication...";
+			//	}
+
+			//	if (AuthButton != null)
+			//	{
+			//		AuthButton.IsEnabled = false;
+			//		AuthButton.Content = "Authenticating...";
+			//	}
+
+			//	var accessToken = await _oauthService.AuthenticateAsync();
+
+			//	if (!string.IsNullOrEmpty(accessToken))
+			//	{
+			//		_githubToken = accessToken;
+
+			//		// Save token securely
+			//		try
+			//		{
+			//			_tokenStorage.SaveToken(_githubToken);
+			//			UpdateAuthenticationStatus(true);
+			//			if (OutputTextBox != null)
+			//			{
+			//				OutputTextBox.Text = "Authenticated successfully via OAuth! Enter a PR URL and click 'Analyze PR' to get started.";
+			//			}
+			//		}
+			//		catch (Exception ex)
+			//		{
+			//			if (OutputTextBox != null)
+			//			{
+			//				OutputTextBox.Text = $"Authentication successful but failed to save token: {ex.Message}";
+			//			}
+			//			_githubToken = null;
+			//			UpdateAuthenticationStatus(false);
+			//		}
+			//	}
+			//	else
+			//	{
+			//		if (OutputTextBox != null)
+			//		{
+			//			OutputTextBox.Text = "Authentication failed or was cancelled. Please try again.";
+			//		}
+			//		UpdateAuthenticationStatus(false);
+			//	}
+			//}
+			//catch (Exception ex)
+			//{
+			//	if (OutputTextBox != null)
+			//	{
+			//		OutputTextBox.Text = $"OAuth authentication error: {ex.Message}";
+			//	}
+			//	UpdateAuthenticationStatus(false);
+			//}
+			//finally
+			//{
+			//	if (AuthButton != null)
+			//	{
+			//		AuthButton.IsEnabled = true;
+			//		AuthButton.Content = _githubToken != null ? "Logout" : "Login to GitHub";
+			//	}
+			//}
 		}
 
 		private async void OnAnalyzeButtonClick(object? sender, RoutedEventArgs e)

@@ -18,7 +18,7 @@ The Pull Request Helper desktop app uses **GitHub OAuth** for secure authenticat
 
 The app is configured with the following OAuth settings:
 
-- **Client ID**: `Ov23liSYS1ygVD9r7e5x`
+- **Client ID**: `Ov23liu5TKJuLRiJ2tGS`
 - **Authorization callback URL**: `http://localhost:8080/auth/callback`
 - **Required scopes**: `repo` (access to repositories for reading PR data)
 
