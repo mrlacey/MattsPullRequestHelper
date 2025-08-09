@@ -182,7 +182,7 @@ public class Program
 		try
 		{
 			var githubService = new GitHubService();
-			await githubService.PostToPullRequestAsync(repository, int.Parse(pullRequestNumber!), message, githubToken!);
+			await githubService.PostToPullRequestAsync(repository!, int.Parse(pullRequestNumber!), message, githubToken!);
 			Console.WriteLine("Successfully posted to PR conversation.");
 		}
 		catch (Exception ex)
