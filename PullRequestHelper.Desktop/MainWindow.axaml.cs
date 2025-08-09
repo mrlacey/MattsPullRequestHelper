@@ -104,6 +104,13 @@ namespace PullRequestHelper.Desktop
 
 				var (code, state) = await callbackTask;
 
+				if (string.IsNullOrEmpty(code))
+				{
+					OutputTextBox.Text = "OAuth error: No code received from GitHub. Please try again.";
+					UpdateAuthenticationStatus(false);
+					return;
+				}
+
 				if (!oauthService.ValidateState(state))
 				{
 					throw new InvalidOperationException("Invalid state parameter - possible CSRF attack");
@@ -131,71 +138,6 @@ namespace PullRequestHelper.Desktop
 				callbackListener.Stop();
 				UpdateAuthenticationStatus(_githubToken != null);
 			}
-
-			//try
-			//{
-			//	if (OutputTextBox != null)
-			//	{
-			//		OutputTextBox.Text = "Opening browser for GitHub authentication...";
-			//	}
-
-			//	if (AuthButton != null)
-			//	{
-			//		AuthButton.IsEnabled = false;
-			//		AuthButton.Content = "Authenticating...";
-			//	}
-
-			//	var accessToken = await _oauthService.AuthenticateAsync();
-
-			//	if (!string.IsNullOrEmpty(accessToken))
-			//	{
-			//		_githubToken = accessToken;
-
-			//		// Save token securely
-			//		try
-			//		{
-			//			_tokenStorage.SaveToken(_githubToken);
-			//			UpdateAuthenticationStatus(true);
-			//			if (OutputTextBox != null)
-			//			{
-			//				OutputTextBox.Text = "Authenticated successfully via OAuth! Enter a PR URL and click 'Analyze PR' to get started.";
-			//			}
-			//		}
-			//		catch (Exception ex)
-			//		{
-			//			if (OutputTextBox != null)
-			//			{
-			//				OutputTextBox.Text = $"Authentication successful but failed to save token: {ex.Message}";
-			//			}
-			//			_githubToken = null;
-			//			UpdateAuthenticationStatus(false);
-			//		}
-			//	}
-			//	else
-			//	{
-			//		if (OutputTextBox != null)
-			//		{
-			//			OutputTextBox.Text = "Authentication failed or was cancelled. Please try again.";
-			//		}
-			//		UpdateAuthenticationStatus(false);
-			//	}
-			//}
-			//catch (Exception ex)
-			//{
-			//	if (OutputTextBox != null)
-			//	{
-			//		OutputTextBox.Text = $"OAuth authentication error: {ex.Message}";
-			//	}
-			//	UpdateAuthenticationStatus(false);
-			//}
-			//finally
-			//{
-			//	if (AuthButton != null)
-			//	{
-			//		AuthButton.IsEnabled = true;
-			//		AuthButton.Content = _githubToken != null ? "Logout" : "Login to GitHub";
-			//	}
-			//}
 		}
 
 		private async void OnAnalyzeButtonClick(object? sender, RoutedEventArgs e)

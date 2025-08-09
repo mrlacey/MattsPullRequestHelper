@@ -12,7 +12,8 @@ namespace PullRequestHelper.Desktop.Services
 {
 	public class GitHubOAuthService
 	{
-		private const string ClientId = "Ov23liu5TKJuLRiJ2tGS";
+		private const string ClientId = "REPLACE THIS";
+		private const string ClientSecret = "REPLACE THIS";
 		private const string RedirectUri = "http://localhost:8080/auth/callback";
 		private const string Scope = "repo";
 
@@ -41,7 +42,9 @@ namespace PullRequestHelper.Desktop.Services
 			var request = new
 			{
 				client_id = ClientId,
-				code = code
+				client_secret = ClientSecret,
+				code = code,
+				redirect_uri = RedirectUri
 			};
 
 			var json = JsonConvert.SerializeObject(request);
