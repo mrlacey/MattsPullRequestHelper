@@ -175,21 +175,14 @@ public class Program
 		if (missingVariables.Any())
 		{
 			Console.WriteLine($"Missing required environment variables: {string.Join(", ", missingVariables)}");
+			Environment.Exit(3);
 			return;
 		}
 
 		try
 		{
-			var repoParts = repository!.Split('/');
-			if (repoParts.Length != 2)
-			{
-				Console.WriteLine($"Invalid repository format: {repository}");
-				Environment.Exit(3);
-				return;
-			}
-
 			var githubService = new GitHubService();
-			await githubService.PostToPullRequestAsync(repoParts[0], repoParts[1], int.Parse(pullRequestNumber!), message, githubToken!);
+			await githubService.PostToPullRequestAsync(repository, int.Parse(pullRequestNumber!), message, githubToken!);
 			Console.WriteLine("Successfully posted to PR conversation.");
 		}
 		catch (Exception ex)

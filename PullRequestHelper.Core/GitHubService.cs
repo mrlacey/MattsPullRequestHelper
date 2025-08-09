@@ -1,12 +1,12 @@
-using System.Text;
+﻿using System.Text;
 
 namespace PullRequestHelper.Core;
 
 public class GitHubService
 {
-	public async Task PostToPullRequestAsync(string repositoryOwner, string repositoryName, int pullRequestNumber, string message, string githubToken)
+	public async Task PostToPullRequestAsync(string repository, int pullRequestNumber, string message, string githubToken)
 	{
-		var apiUrl = $"https://api.github.com/repos/{repositoryOwner}/{repositoryName}/issues/{pullRequestNumber}/comments";
+		var apiUrl = $"https://api.github.com/repos/{repository}/issues/{pullRequestNumber}/comments";
 
 		using (var client = new HttpClient())
 		{
@@ -19,7 +19,12 @@ public class GitHubService
 			var content = new StringContent(contentBody, Encoding.UTF8, "application/json");
 
 			var response = await client.PostAsync(apiUrl, content);
-			if (!response.IsSuccessStatusCode)
+
+			if (response.IsSuccessStatusCode)
+			{
+				Console.WriteLine("Successfully posted to PR conversation.");
+			}
+			else
 			{
 				throw new Exception($"Failed to post to PR conversation. Status: {response.StatusCode}, Message: {await response.Content.ReadAsStringAsync()}");
 			}
