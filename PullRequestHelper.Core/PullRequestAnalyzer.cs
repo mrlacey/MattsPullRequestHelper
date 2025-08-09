@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using PullRequestHelper.Core.Models;
 
@@ -264,10 +264,10 @@ public class PullRequestAnalyzer
 	{
 		if (analysis.Changes.Count == 0)
 		{
-			return $"Project References:{Environment.NewLine}* no reference changes detected *";
+			return $"References:{Environment.NewLine}* no reference changes detected *";
 		}
 
-		var lines = new List<string> { "Project References:" };
+		var lines = new List<string> { "Reference Changes:" };
 
 		var newReferences = analysis.Changes.Where(c => c.IsNew).ToList();
 		var updatedReferences = analysis.Changes.Where(c => c.IsUpdated).ToList();
