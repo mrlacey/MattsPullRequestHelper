@@ -14,7 +14,7 @@ public class GitHubService
 			client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
 			client.DefaultRequestHeaders.Add("User-Agent", "MattsPullRequestHelper");
 
-			var contentBody = $"{{\"body\": \"<b>PullRequestHelper:</b><br /><br />{message.Replace("\n", "<br />")}\"}}";
+			var contentBody = $"{{\"body\":\"<b>PullRequestHelper:</b><br /><br />{message.Replace("\\", "\\\\").Replace("\n", "<br />")}\"}}";
 
 			Console.WriteLine($"Posting to PR conversation: {apiUrl}");
 			Console.WriteLine("Content:");
