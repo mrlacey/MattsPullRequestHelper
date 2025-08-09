@@ -93,7 +93,7 @@ If you want to customize the OAuth configuration:
 
 **Personal Access Token drawbacks:**
 - ❌ Manual token generation required
-- ❌ User must remember to regenerate expired tokens  
+- ❌ User must remember to regenerate expired tokens
 - ❌ Risk of accidentally sharing tokens
 - ❌ No automatic refresh capabilities
 

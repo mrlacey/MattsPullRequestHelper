@@ -174,16 +174,16 @@ namespace PullRequestHelper.Desktop.Services
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Pull Request Helper - Authentication</title>
-    <style>
-        body {{ font-family: Arial, sans-serif; text-align: center; padding: 50px; }}
-        .success {{ color: green; }}
-        .error {{ color: red; }}
-    </style>
+	<title>Pull Request Helper - Authentication</title>
+	<style>
+		body {{ font-family: Arial, sans-serif; text-align: center; padding: 50px; }}
+		.success {{ color: green; }}
+		.error {{ color: red; }}
+	</style>
 </head>
 <body>
-    <h1>Pull Request Helper</h1>
-    <p class=""{(message.Contains("successful") ? "success" : "error")}"">{message}</p>
+	<h1>Pull Request Helper</h1>
+	<p class=""{(message.Contains("successful") ? "success" : "error")}"">{message}</p>
 </body>
 </html>";
 				

@@ -6,7 +6,7 @@
         x:Class="PullRequestHelper.Desktop.MainWindow"
         Title="Pull Request Helper"
         MinWidth="600" MinHeight="500">
-    
+
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -18,24 +18,24 @@
         <!-- PR URL Input -->
         <StackPanel Grid.Row="0" Orientation="Vertical" Margin="0,0,0,15">
             <TextBlock Text="GitHub Pull Request URL:" FontWeight="SemiBold" Margin="0,0,0,5"/>
-            <TextBox Name="PrUrlTextBox" 
+            <TextBox Name="PrUrlTextBox"
                      Watermark="https://github.com/owner/repo/pull/123"
                      FontSize="14" Padding="8"/>
         </StackPanel>
 
         <!-- Authentication Status -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,15">
-            <TextBlock Name="AuthStatusText" Text="Authentication: Not logged in" 
+            <TextBlock Name="AuthStatusText" Text="Authentication: Not logged in"
                        VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <Button Name="AuthButton" Content="Login to GitHub" 
+            <Button Name="AuthButton" Content="Login to GitHub"
                     Click="OnAuthButtonClick" Padding="10,5"/>
         </StackPanel>
 
         <!-- Analysis Output -->
-        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1" 
+        <Border Grid.Row="2" BorderBrush="Gray" BorderThickness="1"
                 CornerRadius="5" Padding="10" Margin="0,0,0,15">
             <ScrollViewer>
-                <TextBox Name="OutputTextBox" 
+                <TextBox Name="OutputTextBox"
                          Text="Analysis results will appear here..."
                          IsReadOnly="True"
                          AcceptsReturn="True"
@@ -48,14 +48,14 @@
         </Border>
 
         <!-- Action Buttons -->
-        <StackPanel Grid.Row="3" Orientation="Horizontal" 
+        <StackPanel Grid.Row="3" Orientation="Horizontal"
                     HorizontalAlignment="Center" Spacing="10">
-            <Button Name="AnalyzeButton" Content="Analyze PR" 
-                    Click="OnAnalyzeButtonClick" 
+            <Button Name="AnalyzeButton" Content="Analyze PR"
+                    Click="OnAnalyzeButtonClick"
                     Padding="15,8" FontWeight="SemiBold"
                     IsEnabled="False"/>
-            <Button Name="CopyButton" Content="Copy Results" 
-                    Click="OnCopyButtonClick" 
+            <Button Name="CopyButton" Content="Copy Results"
+                    Click="OnCopyButtonClick"
                     Padding="15,8"
                     IsEnabled="False"/>
         </StackPanel>

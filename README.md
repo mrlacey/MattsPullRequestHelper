@@ -10,7 +10,7 @@ The aim is to help make reviewing code as easy as possible and help avoid missin
 
 ### GitHub Action Bot
 The GitHub Action analyzes pull requests and posts automated comments about:
-- Test method changes (added/removed)  
+- Test method changes (added/removed)
 - Deleted public methods
 - Project reference changes (packages, projects, frameworks)
 
@@ -54,7 +54,7 @@ jobs:
    - Run `PullRequestHelper.Desktop.exe` (Windows) or equivalent for your platform
 
 2. **Setup Authentication**
-   - Click "Login to GitHub" 
+   - Click "Login to GitHub"
    - Enter your GitHub Personal Access Token (see [OAuth Setup Guide](OAUTH_SETUP.md))
    - Token is securely stored for future use
 
