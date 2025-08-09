@@ -15,14 +15,14 @@ namespace PullRequestHelper.Desktop
 		private readonly TokenStorage _tokenStorage;
 		private readonly GitHubOAuthService _oauthService;
 		private string? _githubToken;
-		
+
 		public MainWindow()
 		{
 			InitializeComponent();
 			_analyzer = new PullRequestAnalyzer();
 			_tokenStorage = new TokenStorage();
 			_oauthService = new GitHubOAuthService();
-			
+
 			// Try to load saved token
 			LoadSavedToken();
 		}
@@ -93,19 +93,19 @@ namespace PullRequestHelper.Desktop
 				{
 					OutputTextBox.Text = "Opening browser for GitHub authentication...";
 				}
-				
+
 				if (AuthButton != null)
 				{
 					AuthButton.IsEnabled = false;
 					AuthButton.Content = "Authenticating...";
 				}
-				
+
 				var accessToken = await _oauthService.AuthenticateAsync();
-				
+
 				if (!string.IsNullOrEmpty(accessToken))
 				{
 					_githubToken = accessToken;
-					
+
 					// Save token securely
 					try
 					{
@@ -198,9 +198,9 @@ namespace PullRequestHelper.Desktop
 			try
 			{
 				var result = await _analyzer.AnalyzePullRequestAsync(
-					prInfo.Value.Owner, 
-					prInfo.Value.Repository, 
-					prInfo.Value.PullRequestNumber, 
+					prInfo.Value.Owner,
+					prInfo.Value.Repository,
+					prInfo.Value.PullRequestNumber,
 					_githubToken);
 
 				if (OutputTextBox != null)
@@ -237,13 +237,13 @@ namespace PullRequestHelper.Desktop
 				if (clipboard != null)
 				{
 					await clipboard.SetTextAsync(OutputTextBox.Text);
-					
+
 					// Temporarily show feedback
 					if (CopyButton != null)
 					{
 						var originalContent = CopyButton.Content;
 						CopyButton.Content = "Copied!";
-						
+
 						// Reset after 2 seconds
 						await Task.Delay(2000);
 						CopyButton.Content = originalContent;
@@ -256,12 +256,12 @@ namespace PullRequestHelper.Desktop
 		{
 			// Match GitHub PR URLs like: https://github.com/owner/repo/pull/123
 			var match = Regex.Match(url, @"^https://github\.com/([^/]+)/([^/]+)/pull/(\d+)(?:/.*)?$", RegexOptions.IgnoreCase);
-			
+
 			if (match.Success && int.TryParse(match.Groups[3].Value, out int prNumber))
 			{
 				return (match.Groups[1].Value, match.Groups[2].Value, prNumber);
 			}
-			
+
 			return null;
 		}
 	}

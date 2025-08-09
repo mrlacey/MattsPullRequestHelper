@@ -1,4 +1,4 @@
-﻿namespace PullRequestHelper.Core.Models;
+namespace PullRequestHelper.Core.Models;
 
 public class ReferenceChange
 {
