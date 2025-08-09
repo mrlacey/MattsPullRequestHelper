@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -15,6 +16,7 @@ namespace PullRequestHelper.Desktop
 		private readonly TokenStorage _tokenStorage;
 		private readonly GitHubOAuthService _oauthService;
 		private string? _githubToken;
+		private CancellationTokenSource? _authCancellationTokenSource;
 
 		public MainWindow()
 		{
@@ -80,63 +82,70 @@ namespace PullRequestHelper.Desktop
 			}
 			else
 			{
-				// Login using OAuth
-				await AuthenticateWithOAuth();
+				// Login using Device Flow
+				await AuthenticateWithDeviceFlow();
 			}
 		}
 
-		private async Task AuthenticateWithOAuth()
+		private async Task AuthenticateWithDeviceFlow()
 		{
-			var oauthService = new GitHubOAuthService();
-			var callbackListener = new OAuthCallbackListener();
-
 			try
 			{
+				// Cancel any existing authentication
+				_authCancellationTokenSource?.Cancel();
+				_authCancellationTokenSource = new CancellationTokenSource();
+
 				AuthButton.IsEnabled = false;
-				OutputTextBox.Text = "Starting authentication...";
+				OutputTextBox.Text = "Starting GitHub Device Flow authentication...";
 
-				var callbackTask = callbackListener.WaitForCallback();
+				// Start device flow
+				var deviceFlow = await _oauthService.StartDeviceFlow();
 
-				var authUrl = oauthService.GetAuthorizationUrl();
-				Process.Start(new ProcessStartInfo(authUrl) { UseShellExecute = true });
+				// Show instructions to user
+				OutputTextBox.Text = $"Please follow these steps to authenticate:\n\n" +
+									$"1. Go to: {deviceFlow.verification_uri}\n" +
+									$"2. Enter this code: {deviceFlow.user_code}\n" +
+									$"3. Click 'Authorize' to grant access\n\n" +
+									$"Waiting for authorization...";
 
-				OutputTextBox.Text = "Waiting for GitHub authorization...";
-
-				var (code, state) = await callbackTask;
-
-				if (string.IsNullOrEmpty(code))
+				// Automatically open the verification URL in browser
+				try
 				{
-					OutputTextBox.Text = "OAuth error: No code received from GitHub. Please try again.";
-					UpdateAuthenticationStatus(false);
-					return;
+					Process.Start(new ProcessStartInfo(deviceFlow.verification_uri) { UseShellExecute = true });
+				}
+				catch
+				{
+					// If we can't open browser automatically, instructions are already shown
 				}
 
-				if (!oauthService.ValidateState(state))
-				{
-					throw new InvalidOperationException("Invalid state parameter - possible CSRF attack");
-				}
+				// Poll for token
+				var token = await _oauthService.PollForToken(
+					deviceFlow.device_code, 
+					deviceFlow.interval, 
+					_authCancellationTokenSource.Token);
 
-				OutputTextBox.Text = "Exchanging code for token...";
-				var token = await oauthService.ExchangeCodeForToken(code);
-
+				// Save token and update UI
 				_tokenStorage.SaveToken(token);
-
-				//OutputTextBox.Text = "Successfully authenticated!";
-				//await LoadUserInfo(token);
+				_githubToken = token;
 				UpdateAuthenticationStatus(true);
+				OutputTextBox.Text = "Successfully authenticated! You can now analyze pull requests.";
+			}
+			catch (OperationCanceledException)
+			{
+				OutputTextBox.Text = "Authentication was cancelled.";
+				UpdateAuthenticationStatus(false);
 			}
 			catch (Exception ex)
 			{
 				if (OutputTextBox != null)
 				{
-					OutputTextBox.Text = $"OAuth authentication error: {ex.Message}";
+					OutputTextBox.Text = $"Authentication error: {ex.Message}";
 				}
 				UpdateAuthenticationStatus(false);
 			}
 			finally
 			{
-				callbackListener.Stop();
-				UpdateAuthenticationStatus(_githubToken != null);
+				AuthButton.IsEnabled = true;
 			}
 		}
 
