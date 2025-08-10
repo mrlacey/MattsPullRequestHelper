@@ -10,9 +10,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		assets\icon.svg = assets\icon.svg
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PullRequestHelper.Desktop", "PullRequestHelper.Desktop\PullRequestHelper.Desktop.csproj", "{AE2714EF-04C4-456B-B928-D7EC3465A035}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PullRequestHelper.Core", "PullRequestHelper.Core\PullRequestHelper.Core.csproj", "{254895E3-26FC-4FB8-842E-95F1602E2117}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +35,10 @@ Global
 		{AE2714EF-04C4-456B-B928-D7EC3465A035}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AE2714EF-04C4-456B-B928-D7EC3465A035}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AE2714EF-04C4-456B-B928-D7EC3465A035}.Release|Any CPU.Build.0 = Release|Any CPU
+		{254895E3-26FC-4FB8-842E-95F1602E2117}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{254895E3-26FC-4FB8-842E-95F1602E2117}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{254895E3-26FC-4FB8-842E-95F1602E2117}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{254895E3-26FC-4FB8-842E-95F1602E2117}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,11 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 64 64" fill="none">
+  <!-- Background -->
+  <rect x="4" y="4" width="56" height="56" rx="12" fill="#1F2937"/>
+  <!-- Text -->
+  <g fill="#E5E7EB" font-family="Neuton, Segoe UI, Inter, Arial, sans-serif" font-weight="700" text-anchor="middle">
+    <text x="32" y="28" font-size="20">ML</text>
+    <text x="32" y="48" font-size="20">PR</text>
+  </g>
+  <!-- Green check -->
+  <path d="M35 48 L40 52 L52 40" stroke="#22C55E" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
