@@ -120,8 +120,8 @@ namespace PullRequestHelper.Desktop
 
 				// Poll for token
 				var token = await _oauthService.PollForToken(
-					deviceFlow.device_code, 
-					deviceFlow.interval, 
+					deviceFlow.device_code,
+					deviceFlow.interval,
 					_authCancellationTokenSource.Token);
 
 				// Save token and update UI
