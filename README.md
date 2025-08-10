@@ -9,12 +9,15 @@ The aim is to help make reviewing code as easy as possible and help avoid missin
 ## Components
 
 ### GitHub Action Bot
+
 The GitHub Action analyzes pull requests and posts automated comments about:
+
 - Test method changes (added/removed)
 - Deleted public methods
 - Project reference changes (packages, projects, frameworks)
 
 ### Desktop Application
+
 A standalone Avalonia-based desktop app that provides the same analysis functionality without requiring GitHub Action installation. Perfect for quick analysis of any public or private pull request.
 
 ## Current functionality
@@ -29,6 +32,7 @@ Written in C# and intended for reviewing C# files.
 ## Usage
 
 ### GitHub Action
+
 Add this to your `.github/workflows/` directory:
 
 ```yaml
@@ -66,12 +70,14 @@ jobs:
 ## Features
 
 ### Analysis Capabilities
+
 - **Test Detection**: Identifies added/removed test methods using common test frameworks (xUnit, NUnit, MSTest)
 - **Public Method Analysis**: Detects deleted public methods that could be breaking changes
 - **Reference Tracking**: Monitors changes to NuGet packages, project references, and framework references
 - **Cross-platform**: Works on Windows, macOS, and Linux
 
 ### Security
+
 - GitHub tokens are stored securely using OS-level protection when available
 - No data is transmitted except directly to GitHub's API
 - All analysis is performed locally
@@ -89,10 +95,12 @@ This architecture ensures the same analysis logic is used in both the GitHub Act
 ## Development
 
 ### Prerequisites
-- .NET 8.0 SDK
+
+- .NET 9.0 SDK
 - Git
 
 ### Building
+
 ```bash
 git clone https://github.com/mrlacey/MattsPullRequestHelper.git
 cd MattsPullRequestHelper
@@ -101,11 +109,13 @@ dotnet build
 ```
 
 ### Testing
+
 ```bash
 dotnet test
 ```
 
 ### Running Desktop App
+
 ```bash
 cd PullRequestHelper.Desktop
 dotnet run
@@ -117,4 +127,4 @@ See the [OAuth Setup Guide](OAUTH_SETUP.md) for detailed instructions on setting
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please open an issue to discuss and changes before submitting a Pull Request.
