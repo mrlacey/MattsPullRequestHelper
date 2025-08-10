@@ -25,11 +25,10 @@ namespace PullRequestHelper.Desktop
 			_tokenStorage = new TokenStorage();
 			_oauthService = new GitHubOAuthService();
 
-			// Try to load saved token
-			LoadSavedToken();
+			TryToLoadSavedToken();
 		}
 
-		private void LoadSavedToken()
+		private void TryToLoadSavedToken()
 		{
 			try
 			{
@@ -98,7 +97,6 @@ namespace PullRequestHelper.Desktop
 				AuthButton.IsEnabled = false;
 				OutputTextBox.Text = "Starting GitHub Device Flow authentication...";
 
-				// Start device flow
 				var deviceFlow = await _oauthService.StartDeviceFlow();
 
 				// Show instructions to user
@@ -118,11 +116,7 @@ namespace PullRequestHelper.Desktop
 					// If we can't open browser automatically, instructions are already shown
 				}
 
-				// Poll for token
-				var token = await _oauthService.PollForToken(
-					deviceFlow.device_code,
-					deviceFlow.interval,
-					_authCancellationTokenSource.Token);
+				var token = await _oauthService.PollForToken(deviceFlow.device_code, deviceFlow.interval, _authCancellationTokenSource.Token);
 
 				// Save token and update UI
 				_tokenStorage.SaveToken(token);
@@ -169,7 +163,6 @@ namespace PullRequestHelper.Desktop
 				return;
 			}
 
-			// Parse PR URL
 			var prInfo = ParsePullRequestUrl(PrUrlTextBox.Text);
 			if (prInfo == null)
 			{

@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -129,6 +125,4 @@ namespace PullRequestHelper.Desktop.Services
 			_httpClient?.Dispose();
 		}
 	}
-
-
 }
